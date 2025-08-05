@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercado Online - Sua mercearia de confiança</title>
+    <link rel="stylesheet" href="../assets/css/client.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1><i class="fas fa-shopping-basket"></i> Mercado Online</h1>
+            </div>
+            <nav class="nav">
+                <a href="#home" class="nav-link active">Início</a>
+                <a href="#produtos" class="nav-link">Produtos</a>
+                <a href="#carrinho" class="nav-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    Carrinho (<span id="cart-count">0</span>)
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Home Section -->
+        <section id="home" class="section active">
+            <div class="container">
+                <div class="hero">
+                    <h2>Bem-vindo ao Mercado Online</h2>
+                    <p>Produtos frescos e de qualidade entregues na sua casa</p>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="Buscar produtos...">
+                        <button id="search-btn"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+
+                <!-- Featured Products -->
+                <div class="featured-section">
+                    <h3>Produtos em Destaque</h3>
+                    <div id="featured-products" class="products-grid">
+                        <!-- Produtos em destaque serão carregados aqui -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section id="produtos" class="section">
+            <div class="container">
+                <h2>Nossos Produtos</h2>
+                
+                <!-- Category Filters -->
+                <div class="filters">
+                    <button class="filter-btn active" data-category="all">Todos</button>
+                    <button class="filter-btn" data-category="frutas">Frutas</button>
+                    <button class="filter-btn" data-category="bebidas">Bebidas</button>
+                    <button class="filter-btn" data-category="limpeza">Limpeza</button>
+                    <button class="filter-btn" data-category="padaria">Padaria</button>
+                    <button class="filter-btn" data-category="carnes">Carnes</button>
+                </div>
+
+                <!-- Products Grid -->
+                <div id="products-grid" class="products-grid">
+                    <!-- Produtos serão carregados aqui -->
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <button id="prev-page" class="pagination-btn">Anterior</button>
+                    <span id="page-info">Página 1 de 1</span>
+                    <button id="next-page" class="pagination-btn">Próxima</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cart Section -->
+        <section id="carrinho" class="section">
+            <div class="container">
+                <h2>Carrinho de Compras</h2>
+                
+                <div id="cart-content">
+                    <div id="cart-items">
+                        <!-- Itens do carrinho serão exibidos aqui -->
+                    </div>
+                    
+                    <div id="cart-empty" class="cart-empty">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>Seu carrinho está vazio</p>
+                        <button onclick="showSection('produtos')" class="btn btn-primary">Continuar Comprando</button>
+                    </div>
+                    
+                    <div id="cart-summary" class="cart-summary" style="display: none;">
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span id="cart-subtotal">R$ 0,00</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total:</span>
+                            <span id="cart-total">R$ 0,00</span>
+                        </div>
+                        <button id="checkout-btn" class="btn btn-success">Finalizar Pedido</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Finalizar Pedido</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="checkout-form">
+                    <div class="form-group">
+                        <label for="customer-name">Nome Completo:</label>
+                        <input type="text" id="customer-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="customer-phone">Telefone:</label>
+                        <input type="tel" id="customer-phone" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="customer-address">Endereço de Entrega:</label>
+                        <textarea id="customer-address" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="payment-method">Forma de Pagamento:</label>
+                        <select id="payment-method" required>
+                            <option value="">Selecione...</option>
+                            <option value="dinheiro">Dinheiro</option>
+                            <option value="cartao">Cartão na Entrega</option>
+                            <option value="pix">PIX</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="order-notes">Observações (opcional):</label>
+                        <textarea id="order-notes" rows="2" placeholder="Alguma observação especial..."></textarea>
+                    </div>
+                    
+                    <div class="order-summary">
+                        <h4>Resumo do Pedido</h4>
+                        <div id="checkout-items"></div>
+                        <div class="total-checkout">
+                            <strong>Total: <span id="checkout-total">R$ 0,00</span></strong>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeCheckoutModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Enviar Pedido via WhatsApp</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/supabase.js"></script>
+    <script src="../assets/js/client.js"></script>
+</body>
+</html>
+
