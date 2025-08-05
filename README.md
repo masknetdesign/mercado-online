@@ -198,6 +198,38 @@ Contribuições são bem-vindas! Para contribuir:
 
 Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
 
+## 🚀 Deploy Rápido
+
+### Opção 1: Script Automático (Recomendado)
+```powershell
+# 1. Verificar se está tudo pronto
+.\pre-deploy-check.ps1
+
+# 2. Configurar Git + GitHub
+.\deploy-setup.ps1
+
+# 3. Deploy no Netlify
+# Acesse netlify.com → "Add new site" → "Import from GitHub"
+```
+
+### Opção 2: Manual
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin https://github.com/SEU_USUARIO/mercado-online.git
+git push -u origin main
+```
+
+### 📖 Guias Disponíveis
+- **[DEPLOY-RAPIDO.md](DEPLOY-RAPIDO.md)** - Instruções rápidas
+- **[DEPLOY-NETLIFY-GITHUB.md](DEPLOY-NETLIFY-GITHUB.md)** - Guia completo passo a passo
+- **Scripts**: `pre-deploy-check.ps1` e `deploy-setup.ps1`
+
+### ⏱️ Tempo Estimado
+- **Com script**: 10-15 minutos
+- **Manual**: 15-30 minutos
+
 ## 📞 Suporte
 
 Para dúvidas ou suporte:
@@ -205,12 +237,14 @@ Para dúvidas ou suporte:
 - 📧 Email: suporte@mercadoonline.com
 - 💬 WhatsApp: +55 11 99999-9999
 - 🐛 Issues: [GitHub Issues](link-para-issues)
+- 📖 Documentação: Consulte os arquivos `.md` do projeto
 
 ## 🎉 Agradecimentos
 
 - [Font Awesome](https://fontawesome.com) pelos ícones
 - [Unsplash](https://unsplash.com) pelas imagens de demonstração
 - [Supabase](https://supabase.com) pela infraestrutura de backend
+- [Netlify](https://netlify.com) pela hospedagem gratuita
 - Comunidade open source pelas inspirações
 
 ---
