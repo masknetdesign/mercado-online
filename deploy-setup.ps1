@@ -89,7 +89,25 @@ if (Test-Path ".git") {
     
     # Adicionar remote origin
     Write-Host "🔗 Configurando remote origin..." -ForegroundColor Yellow
-    git remote add origin $repoUrl
+    
+    # Verificar se o remote já existe
+    $remoteExists = git remote get-url origin 2>$null
+    if ($remoteExists) {
+        Write-Host "Remote origin já existe. Atualizando URL..." -ForegroundColor Yellow
+        git remote set-url origin $repoUrl
+        Write-Host "✓ Remote origin atualizado" -ForegroundColor Green
+    } else {
+        try {
+            git remote add origin $repoUrl
+            Write-Host "✓ Remote origin configurado" -ForegroundColor Green
+        } catch {
+            Write-Host "⚠ Erro ao configurar remote origin: $_" -ForegroundColor Red
+        }
+    }
+    
+    # Verificar configuração
+    Write-Host "Verificando configuração do remote..." -ForegroundColor Cyan
+    git remote -v
 }
 
 # Configurar branch principal

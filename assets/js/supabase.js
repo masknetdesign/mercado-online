@@ -1,8 +1,8 @@
 // Configuração do Supabase
 // IMPORTANTE: Substitua estas configurações pelas suas próprias do Supabase
 const SUPABASE_CONFIG = {
-    url: 'SUA_URL_DO_SUPABASE_AQUI', // Ex: https://xyzcompany.supabase.co
-    anonKey: 'SUA_CHAVE_ANONIMA_AQUI', // Sua chave anônima do Supabase
+    url: 'https://njvbvuuljhlyqvyxxibk.supabase.co', // Ex: https://xyzcompany.supabase.co
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdmJ2dXVsamhseXF2eXh4aWJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzNjM2NzgsImV4cCI6MjA2OTkzOTY3OH0.HloULjOaiULzBU6oIs3lAtG5LCVhxvmIXf0G02yLFic', // Sua chave anônima do Supabase
     bucketName: 'produtos-images' // Nome do bucket para imagens
 };
 

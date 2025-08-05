@@ -55,8 +55,14 @@ git add .
 # Fazer primeiro commit
 git commit -m "Initial commit: Mercado Online - Aplicativo completo"
 
-# Adicionar origem remota (substitua SEU_USUARIO pelo seu username)
+# Se o remote já existir (erro "remote origin already exists"), atualize a URL:
+git remote set-url origin https://github.com/SEU_USUARIO/mercado-online.git
+
+# Se for a primeira vez, adicione o remote:
 git remote add origin https://github.com/SEU_USUARIO/mercado-online.git
+
+# Verificar se a URL está correta
+git remote -v
 
 # Enviar para GitHub
 git branch -M main
