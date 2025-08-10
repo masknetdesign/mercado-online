@@ -1,0 +1,7 @@
+# Redirects for Mercado Online
+/admin /admin/index.html 200
+/client /client/index.html 200
+/ /index.html 200
+
+# Fallback for SPA
+/* /index.html 200
