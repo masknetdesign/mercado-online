@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Busca - Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; font-family: monospace; }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+        input, button { padding: 8px; margin: 5px; }
+        .product-card { border: 1px solid #ccc; padding: 10px; margin: 5px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Teste de Busca - Debug Detalhado</h1>
+    
+    <div class="test-section">
+        <h2>1. Teste de Elementos HTML</h2>
+        <div id="html-test-log" class="log"></div>
+        <button onclick="testHTMLElements()">Testar Elementos</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Teste de Carregamento de Produtos</h2>
+        <div id="products-test-log" class="log"></div>
+        <button onclick="testProductsLoad()">Carregar Produtos</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Teste de Busca Manual</h2>
+        <input type="text" id="manual-search" placeholder="Digite para buscar...">
+        <button onclick="testManualSearch()">Buscar</button>
+        <div id="search-test-log" class="log"></div>
+        <div id="search-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Simulação da Área Cliente</h2>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Buscar produtos...">
+            <button id="search-btn">🔍</button>
+        </div>
+        <div id="client-test-log" class="log"></div>
+        <div id="products-grid"></div>
+    </div>
+    
+    <script src="assets/js/supabase.js"></script>
+    <script>
+        // Estado de teste
+        const TestState = {
+            products: [],
+            filteredProducts: [],
+            searchTerm: ''
+        };
+        
+        function log(message, type = 'info', containerId = 'client-test-log') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            container.appendChild(div);
+            console.log(message);
+        }
+        
+        function testHTMLElements() {
+            const container = document.getElementById('html-test-log');
+            container.innerHTML = '';
+            
+            // Testa elementos da área cliente
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            const productsGrid = document.getElementById('products-grid');
+            
+            log(`search-input encontrado: ${!!searchInput}`, searchInput ? 'success' : 'error', 'html-test-log');
+            log(`search-btn encontrado: ${!!searchBtn}`, searchBtn ? 'success' : 'error', 'html-test-log');
+            log(`products-grid encontrado: ${!!productsGrid}`, productsGrid ? 'success' : 'error', 'html-test-log');
+            
+            if (searchInput) {
+                log(`search-input ID: ${searchInput.id}`, 'info', 'html-test-log');
+                log(`search-input placeholder: ${searchInput.placeholder}`, 'info', 'html-test-log');
+            }
+        }
+        
+        async function testProductsLoad() {
+            const container = document.getElementById('products-test-log');
+            container.innerHTML = '';
+            
+            log('Iniciando carregamento de produtos...', 'info', 'products-test-log');
+            
+            try {
+                if (typeof supabaseClient === 'undefined') {
+                    log('❌ supabaseClient não encontrado!', 'error', 'products-test-log');
+                    return;
+                }
+                
+                const { data, error } = await supabaseClient.getProducts();
+                
+                if (error) {
+                    log(`❌ Erro ao carregar produtos: ${error}`, 'error', 'products-test-log');
+                    return;
+                }
+                
+                TestState.products = data || [];
+                log(`✅ ${TestState.products.length} produtos carregados`, 'success', 'products-test-log');
+                
+                if (TestState.products.length > 0) {
+                    log(`Primeiro produto: ${TestState.products[0].nome}`, 'info', 'products-test-log');
+                    log(`Categorias encontradas: ${[...new Set(TestState.products.map(p => p.categoria))].join(', ')}`, 'info', 'products-test-log');
+                }
+                
+            } catch (error) {
+                log(`❌ Erro na função: ${error.message}`, 'error', 'products-test-log');
+            }
+        }
+        
+        // Função para normalizar texto (remove acentos e caracteres especiais)
+        function normalizeText(text) {
+            if (!text) return '';
+            return text
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+                .replace(/[^a-z0-9\s]/g, '') // Remove caracteres especiais
+                .trim();
+        }
+        
+        function testManualSearch() {
+            const container = document.getElementById('search-test-log');
+            const resultsContainer = document.getElementById('search-results');
+            container.innerHTML = '';
+            resultsContainer.innerHTML = '';
+            
+            const searchTerm = document.getElementById('manual-search').value.trim();
+            const normalizedSearchTerm = normalizeText(searchTerm);
+            log(`Buscando por: "${searchTerm}"`, 'info', 'search-test-log');
+            log(`Termo normalizado: "${normalizedSearchTerm}"`, 'info', 'search-test-log');
+            
+            if (TestState.products.length === 0) {
+                log('❌ Nenhum produto carregado. Execute o teste de produtos primeiro.', 'error', 'search-test-log');
+                return;
+            }
+            
+            const filtered = TestState.products.filter(product => {
+                const normalizedNome = normalizeText(product.nome);
+                const normalizedDesc = normalizeText(product.descricao);
+                
+                const nomeMatch = normalizedNome.includes(normalizedSearchTerm);
+                const descMatch = normalizedDesc.includes(normalizedSearchTerm);
+                const match = nomeMatch || descMatch;
+                
+                if (match) {
+                    log(`Produto encontrado: ${product.nome} (normalizado: ${normalizedNome})`, 'success', 'search-test-log');
+                }
+                
+                return match;
+            });
+            
+            log(`✅ ${filtered.length} produtos encontrados`, 'success', 'search-test-log');
+            
+            if (filtered.length > 0) {
+                resultsContainer.innerHTML = filtered.map(product => `
+                    <div class="product-card">
+                        <strong>${product.nome}</strong><br>
+                        <small>${product.categoria} - R$ ${product.preco.toFixed(2)}</small>
+                    </div>
+                `).join('');
+            } else {
+                resultsContainer.innerHTML = '<p>Nenhum produto encontrado</p>';
+            }
+        }
+        
+        // Simula a função handleSearch da área cliente
+        function simulateClientSearch() {
+            log('🔍 Simulando busca da área cliente...', 'info');
+            
+            const searchInput = document.getElementById('search-input');
+            if (!searchInput) {
+                log('❌ Elemento search-input não encontrado!', 'error');
+                return;
+            }
+            
+            const searchValue = searchInput.value.trim();
+            const normalizedSearchTerm = normalizeText(searchValue);
+            log(`🔍 Termo de busca: "${searchValue}"`, 'info');
+            log(`🔍 Termo normalizado: "${normalizedSearchTerm}"`, 'info');
+            log(`🔍 Produtos disponíveis: ${TestState.products.length}`, 'info');
+            
+            if (TestState.products.length === 0) {
+                log('❌ Nenhum produto disponível para busca', 'error');
+                return;
+            }
+            
+            const filtered = TestState.products.filter(product => {
+                const normalizedNome = normalizeText(product.nome);
+                const normalizedDesc = normalizeText(product.descricao);
+                
+                const nomeMatch = normalizedNome.includes(normalizedSearchTerm);
+                const descMatch = normalizedDesc.includes(normalizedSearchTerm);
+                const match = nomeMatch || descMatch;
+                
+                if (match) {
+                    log(`🔧 Produto encontrado: ${product.nome} (normalizado: ${normalizedNome})`, 'success');
+                }
+                return match;
+            });
+            
+            log(`🔍 Produtos filtrados: ${filtered.length}`, 'info');
+            
+            // Renderiza resultados
+            const productsGrid = document.getElementById('products-grid');
+            if (productsGrid) {
+                if (filtered.length === 0) {
+                    productsGrid.innerHTML = '<p>Nenhum produto encontrado</p>';
+                } else {
+                    productsGrid.innerHTML = filtered.map(product => `
+                        <div class="product-card">
+                            <strong>${product.nome}</strong><br>
+                            <small>${product.categoria} - R$ ${product.preco.toFixed(2)}</small>
+                        </div>
+                    `).join('');
+                }
+            }
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            log('✅ Página carregada', 'success');
+            
+            // Adiciona event listener ao botão de busca
+            const searchBtn = document.getElementById('search-btn');
+            const searchInput = document.getElementById('search-input');
+            
+            if (searchBtn) {
+                searchBtn.addEventListener('click', simulateClientSearch);
+                log('✅ Event listener adicionado ao botão', 'success');
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        simulateClientSearch();
+                    }
+                });
+                log('✅ Event listener adicionado ao input', 'success');
+            }
+        });
+    </script>
+</body>
+</html>

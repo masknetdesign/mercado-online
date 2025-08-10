@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico Netlify - Configuração do Site</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            border-left: 5px solid #dc3545;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .status-card.warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        
+        .status-card.info {
+            border-left-color: #17a2b8;
+            background: #d1ecf1;
+        }
+        
+        .status-card.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .checklist {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        
+        .checklist h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .check-number {
+            background: #007bff;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .check-content {
+            flex: 1;
+        }
+        
+        .check-content strong {
+            color: #495057;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn.danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        }
+        
+        .btn.success {
+            background: linear-gradient(135deg, #51cf66, #40c057);
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Diagnóstico Netlify</h1>
+            <p>Verificação de Configuração do Site</p>
+        </div>
+        
+        <div class="content">
+            <div class="status-card">
+                <h3>❌ Problema Identificado</h3>
+                <p><strong>Erro 404 "Site not found" persiste após correções</strong></p>
+                <p>Baseado na pesquisa de soluções, o problema mais comum é <span class="highlight">diretório de publicação incorreto</span> no dashboard do Netlify.</p>
+            </div>
+            
+            <div class="checklist">
+                <h3>📋 Verificação Obrigatória no Dashboard Netlify</h3>
+                
+                <div class="check-item">
+                    <div class="check-number">1</div>
+                    <div class="check-content">
+                        <strong>Acesse o Dashboard do Netlify</strong>
+                        <p>Vá para <a href="https://app.netlify.com" target="_blank">app.netlify.com</a> e encontre seu site</p>
+                    </div>
+                </div>
+                
+                <div class="check-item">
+                    <div class="check-number">2</div>
+                    <div class="check-content">
+                        <strong>Verifique Site Settings → Build & Deploy</strong>
+                        <p>Clique em "Site Settings" → "Build & Deploy" → "Continuous Deployment"</p>
+                    </div>
+                </div>
+                
+                <div class="check-item">
+                    <div class="check-number">3</div>
+                    <div class="check-content">
+                        <strong>Confirme o Publish Directory</strong>
+                        <p>Deve estar configurado como: <span class="highlight">. (ponto)</span> ou <span class="highlight">/</span> ou <span class="highlight">vazio</span></p>
+                        <p><strong>❌ NÃO deve ser:</strong> build, dist, public, ou qualquer subpasta</p>
+                    </div>
+                </div>
+                
+                <div class="check-item">
+                    <div class="check-number">4</div>
+                    <div class="check-content">
+                        <strong>Verifique Build Command</strong>
+                        <p>Deve estar <span class="highlight">vazio</span> (sem comando de build)</p>
+                    </div>
+                </div>
+                
+                <div class="check-item">
+                    <div class="check-number">5</div>
+                    <div class="check-content">
+                        <strong>Verifique o Branch</strong>
+                        <p>Deve estar apontando para: <span class="highlight">main</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="status-card info">
+                <h3>🔍 Configurações Corretas Esperadas</h3>
+                <div class="code-block">
+Repository: masknetdesign/mercado-online
+Branch: main
+Build Command: (vazio)
+Publish Directory: . (ou vazio)
+Base Directory: (vazio)
+                </div>
+            </div>
+            
+            <div class="checklist">
+                <h3>🛠️ Como Corrigir (se necessário)</h3>
+                
+                <div class="check-item">
+                    <div class="check-number">1</div>
+                    <div class="check-content">
+                        <strong>Editar Configurações</strong>
+                        <p>No dashboard, clique em "Edit settings" na seção Build settings</p>
+                    </div>
+                </div>
+                
+                <div class="check-item">
+                    <div class="check-number">2</div>
+                    <div class="check-content">
+                        <strong>Alterar Publish Directory</strong>
+                        <p>Deixe em branco ou coloque apenas um ponto: <span class="highlight">.</span></p>
+                    </div>
+                </div>
+                
+                <div class="check-item">
+                    <div class="check-number">3</div>
+                    <div class="check-content">
+                        <strong>Salvar e Redesploy</strong>
+                        <p>Clique em "Save" e depois "Trigger deploy" → "Deploy site"</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="status-card warning">
+                <h3>⚠️ Outras Possíveis Causas</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Cache do CDN desatualizado (aguarde 5-10 minutos)</li>
+                    <li>Problema de DNS (se usando domínio customizado)</li>
+                    <li>Site pausado ou suspenso no Netlify</li>
+                    <li>Limite de banda ou builds excedido</li>
+                </ul>
+            </div>
+            
+            <div class="status-card success">
+                <h3>✅ Arquivos Confirmados no Projeto</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>✅ index.html existe na raiz</li>
+                    <li>✅ _redirects criado com regras corretas</li>
+                    <li>✅ netlify.toml configurado</li>
+                    <li>✅ Commits enviados para GitHub</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://app.netlify.com" target="_blank" class="btn">🚀 Abrir Dashboard Netlify</a>
+                <button onclick="window.location.reload()" class="btn success">🔄 Atualizar Página</button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>💡 Dica:</strong> Se o problema persistir após verificar as configurações, aguarde 10-15 minutos para propagação do CDN.</p>
+            <p style="margin-top: 10px; color: #6c757d;">Diagnóstico gerado em: <span id="timestamp"></span></p>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('timestamp').textContent = new Date().toLocaleString('pt-BR');
+    </script>
+</body>
+</html>

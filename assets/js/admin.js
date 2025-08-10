@@ -78,6 +78,17 @@ function initializeEventListeners() {
         productForm.addEventListener('submit', handleProductSubmit);
     }
     
+    // Event listeners para importação CSV
+    const downloadTemplateBtn = document.getElementById('download-template');
+    if (downloadTemplateBtn) {
+        downloadTemplateBtn.addEventListener('click', downloadCSVTemplate);
+    }
+    
+    const resetImportBtn = document.getElementById('reset-import');
+    if (resetImportBtn) {
+        resetImportBtn.addEventListener('click', resetImportForm);
+    }
+    
     // Image upload
     const imageInput = document.getElementById('product-image');
     if (imageInput) {
@@ -785,7 +796,403 @@ function getNotificationColor(type) {
     return colors[type] || '#3498db';
 }
 
-// Adiciona estilos para badges
+// ===== FUNCIONALIDADES DE IMPORTAÇÃO CSV =====
+
+// Inicializa event listeners para importação CSV
+function initializeCSVImport() {
+    const csvForm = document.getElementById('csv-import-form');
+    if (csvForm) {
+        csvForm.addEventListener('submit', handleCSVImport);
+    }
+}
+
+// Baixa modelo CSV
+function downloadCSVTemplate() {
+    const csvContent = `nome,categoria,preco,descricao,imagem
+"Arroz Integral 1kg","grãos e cereais","8.50","Arroz integral orgânico","arroz-integral.jpg"
+"Açúcar Cristal 1kg","açúcares e adoçantes","4.20","Açúcar cristal refinado","acucar-cristal.jpg"
+"Azeite Extra Virgem","óleos e temperos","15.90","Azeite de oliva extra virgem","azeite-extra-virgem.jpg"
+"Café Torrado 500g","cafés e bebidas","12.80","Café torrado e moído","cafe-torrado.jpg"
+"Macarrão Espaguete","massas","3.75","Macarrão de sêmola","macarrao-espaguete.jpg"
+"Orégano Desidratado","temperos","2.50","Orégano seco em folhas","oregano-desidratado.jpg"
+"Leite Integral 1L","laticínios","4.90","Leite integral pasteurizado","leite-integral.jpg"
+"Maçã Fuji","frutas","6.80","Maçã doce e crocante","maca-fuji.jpg"
+"Refrigerante Cola 2L","bebidas","8.90","Refrigerante de cola","refrigerante-cola.jpg"
+"Detergente Neutro","limpeza","3.20","Detergente líquido neutro","detergente-neutro.jpg"`;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'modelo-produtos.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    
+    showNotification('Modelo CSV baixado com sucesso!', 'success');
+}
+
+// Processa importação CSV
+async function handleCSVImport(e) {
+    e.preventDefault();
+    
+    const fileInput = document.getElementById('csv-file');
+    const imagesInput = document.getElementById('images-files');
+    const skipDuplicates = document.getElementById('skip-duplicates').checked;
+    const validatePrices = document.getElementById('validate-prices').checked;
+    
+    if (!fileInput.files[0]) {
+        showNotification('Por favor, selecione um arquivo CSV', 'error');
+        return;
+    }
+    
+    const file = fileInput.files[0];
+    const imageFiles = imagesInput.files;
+    
+    // Verifica se é um arquivo CSV
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+        showNotification('Por favor, selecione apenas arquivos .csv', 'error');
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        const csvText = await readFileAsText(file);
+        const products = parseCSV(csvText);
+        
+        if (products.length === 0) {
+            showNotification('Nenhum produto válido encontrado no arquivo CSV', 'error');
+            showLoading(false);
+            return;
+        }
+        
+        // Processa imagens se fornecidas
+        const imageMap = new Map();
+        if (imageFiles.length > 0) {
+            for (const imageFile of imageFiles) {
+                const fileName = imageFile.name.toLowerCase();
+                const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+                imageMap.set(nameWithoutExt, imageFile);
+            }
+        }
+        
+        const results = await importProducts(products, { skipDuplicates, validatePrices, imageMap });
+        displayImportResults(results);
+        
+        // Recarrega lista de produtos
+        await loadAdminData();
+        
+    } catch (error) {
+        console.error('Erro na importação:', error);
+        showNotification(`Erro ao processar arquivo: ${error.message}`, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Lê arquivo como texto
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(new Error('Erro ao ler arquivo'));
+        reader.readAsText(file, 'UTF-8');
+    });
+}
+
+// Converte CSV em array de objetos
+function parseCSV(csvText) {
+    const lines = csvText.split('\n').filter(line => line.trim());
+    
+    if (lines.length < 2) {
+        throw new Error('Arquivo CSV deve ter pelo menos um cabeçalho e uma linha de dados');
+    }
+    
+    const headers = parseCSVLine(lines[0]);
+    const normalizedHeaders = headers.map(h => h.toLowerCase().trim());
+    const products = [];
+    
+    // Debug: mostra os cabeçalhos encontrados
+    console.log('Cabeçalhos originais:', headers);
+    console.log('Cabeçalhos normalizados:', normalizedHeaders);
+    
+    // Verifica se tem os campos obrigatórios
+    const requiredFields = ['nome', 'categoria', 'preco'];
+    const missingFields = requiredFields.filter(field => !normalizedHeaders.includes(field));
+    
+    console.log('Campos obrigatórios:', requiredFields);
+    console.log('Campos ausentes:', missingFields);
+    
+    if (missingFields.length > 0) {
+        throw new Error(`Campos obrigatórios ausentes no CSV: ${missingFields.join(', ')}`);
+    }
+    
+    for (let i = 1; i < lines.length; i++) {
+        try {
+            const values = parseCSVLine(lines[i]);
+            
+            if (values.length !== headers.length) {
+                console.warn(`Linha ${i + 1}: número de colunas não confere`);
+                continue;
+            }
+            
+            const product = {};
+            headers.forEach((header, index) => {
+                product[header.toLowerCase().trim()] = values[index]?.trim() || '';
+            });
+            
+            // Valida campos obrigatórios
+            if (product.nome && product.categoria && product.preco) {
+                products.push({
+                    nome: product.nome,
+                    categoria: product.categoria.toLowerCase(),
+                    preco: parseFloat(product.preco.replace(',', '.')),
+                    descricao: product.descricao || '',
+                    imagem: product.imagem || '',
+                    linha: i + 1
+                });
+            }
+            
+        } catch (error) {
+            console.warn(`Erro na linha ${i + 1}:`, error.message);
+        }
+    }
+    
+    return products;
+}
+
+// Analisa linha CSV considerando aspas
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            result.push(current);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    
+    result.push(current);
+    return result;
+}
+
+// Importa produtos para o banco
+async function importProducts(products, options = {}) {
+    const { skipDuplicates = true, validatePrices = true, imageMap = new Map() } = options;
+    const results = {
+        imported: 0,
+        errors: 0,
+        skipped: 0,
+        errorDetails: []
+    };
+    
+    // Categorias válidas
+    const validCategories = [
+        'frutas', 'bebidas', 'limpeza', 'padaria', 'carnes', 'outros',
+        'grãos e cereais', 'açúcares e adoçantes', 'óleos e temperos', 
+        'cafés e bebidas', 'massas', 'temperos', 'laticínios'
+    ];
+    
+    // Carrega produtos existentes se necessário
+    let existingProducts = [];
+    if (skipDuplicates) {
+        existingProducts = AdminState.products.map(p => p.nome.toLowerCase());
+    }
+    
+    for (const product of products) {
+        try {
+            // Validações
+            if (!product.nome || product.nome.length < 2) {
+                results.errors++;
+                results.errorDetails.push(`Linha ${product.linha}: Nome inválido`);
+                continue;
+            }
+            
+            if (!validCategories.includes(product.categoria)) {
+                results.errors++;
+                results.errorDetails.push(`Linha ${product.linha}: Categoria "${product.categoria}" inválida`);
+                continue;
+            }
+            
+            if (validatePrices && (isNaN(product.preco) || product.preco <= 0)) {
+                results.errors++;
+                results.errorDetails.push(`Linha ${product.linha}: Preço inválido (${product.preco})`);
+                continue;
+            }
+            
+            // Verifica duplicatas
+            if (skipDuplicates && existingProducts.includes(product.nome.toLowerCase())) {
+                results.skipped++;
+                continue;
+            }
+            
+            // Processa imagem se disponível
+            let imageUrl = '/assets/images/placeholder.svg';
+            
+            // Verifica se há uma imagem correspondente
+            const productImageName = product.imagem || product.nome.toLowerCase().replace(/[^a-z0-9]/g, '-');
+            const imageNameWithoutExt = productImageName.toLowerCase().replace(/\.[^/.]+$/, "");
+            
+            if (imageMap.has(imageNameWithoutExt)) {
+                try {
+                    const imageFile = imageMap.get(imageNameWithoutExt);
+                    const uploadResult = await uploadProductImage(imageFile, product.nome);
+                    if (uploadResult.success) {
+                        imageUrl = uploadResult.url;
+                    }
+                } catch (imageError) {
+                    console.warn(`Erro ao fazer upload da imagem para ${product.nome}:`, imageError);
+                    // Continua com a imagem padrão
+                }
+            }
+            
+            // Tenta inserir no banco usando a função existente
+            const productData = {
+                nome: product.nome,
+                categoria: product.categoria,
+                preco: product.preco,
+                descricao: product.descricao,
+                url_imagem: imageUrl
+            };
+            
+            const result = await supabaseClient.addProduct(productData);
+            
+            if (result.error) {
+                results.errors++;
+                results.errorDetails.push(`Linha ${product.linha}: ${result.error.message || result.error}`);
+            } else {
+                results.imported++;
+                // Adiciona à lista local para evitar duplicatas nas próximas iterações
+                if (skipDuplicates) {
+                    existingProducts.push(product.nome.toLowerCase());
+                }
+            }
+            
+        } catch (error) {
+            results.errors++;
+            results.errorDetails.push(`Linha ${product.linha}: ${error.message}`);
+        }
+    }
+    
+    return results;
+}
+
+// Exibe resultados da importação
+function displayImportResults(results) {
+    const resultsDiv = document.getElementById('import-results');
+    const importedCount = document.getElementById('imported-count');
+    const errorCount = document.getElementById('error-count');
+    const skippedCount = document.getElementById('skipped-count');
+    const errorsDiv = document.getElementById('import-errors');
+    const errorList = document.getElementById('error-list');
+    
+    // Atualiza contadores
+    if (importedCount) importedCount.textContent = results.imported;
+    if (errorCount) errorCount.textContent = results.errors;
+    if (skippedCount) skippedCount.textContent = results.skipped;
+    
+    // Mostra erros se houver
+    if (results.errorDetails.length > 0 && errorsDiv && errorList) {
+        errorList.innerHTML = '';
+        results.errorDetails.forEach(error => {
+            const li = document.createElement('li');
+            li.textContent = error;
+            errorList.appendChild(li);
+        });
+        errorsDiv.style.display = 'block';
+    } else if (errorsDiv) {
+        errorsDiv.style.display = 'none';
+    }
+    
+    // Mostra resultados
+    if (resultsDiv) {
+        resultsDiv.style.display = 'block';
+    }
+    
+    // Notificação de sucesso
+    if (results.imported > 0) {
+        showNotification(`${results.imported} produto(s) importado(s) com sucesso!`, 'success');
+    }
+}
+
+// Upload de imagem do produto para Supabase Storage
+async function uploadProductImage(imageFile, productName) {
+    try {
+        // Função para sanitizar nome do arquivo
+        function sanitizeFileName(name) {
+            return name
+                .normalize('NFD') // Decompõe caracteres acentuados
+                .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '-') // Substitui caracteres especiais por hífen
+                .replace(/-+/g, '-') // Remove hífens duplicados
+                .replace(/^-|-$/g, ''); // Remove hífens do início e fim
+        }
+        
+        // Gera nome único para o arquivo
+        const fileExt = imageFile.name.split('.').pop();
+        const sanitizedName = sanitizeFileName(productName);
+        const fileName = `${Date.now()}-${sanitizedName}.${fileExt}`;
+        
+        // Faz upload para o Supabase Storage
+        const { data, error } = await supabaseClient.client.storage
+            .from('produtos')
+            .upload(fileName, imageFile, {
+                cacheControl: '3600',
+                upsert: false
+            });
+        
+        if (error) {
+            console.error('Erro no upload da imagem:', error);
+            return { success: false, error: error.message };
+        }
+        
+        // Obtém URL pública da imagem
+        const { data: urlData } = supabaseClient.client.storage
+            .from('produtos')
+            .getPublicUrl(fileName);
+        
+        return {
+            success: true,
+            url: urlData.publicUrl,
+            fileName: fileName
+        };
+        
+    } catch (error) {
+        console.error('Erro no upload da imagem:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// Reseta formulário de importação
+function resetImportForm() {
+    const form = document.getElementById('csv-import-form');
+    const resultsDiv = document.getElementById('import-results');
+    
+    if (form) form.reset();
+    if (resultsDiv) resultsDiv.style.display = 'none';
+}
+
+// Inicializa importação CSV quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', function() {
+    // Aguarda um pouco para garantir que outros elementos foram inicializados
+    setTimeout(initializeCSVImport, 100);
+});
+
+// Adiciona estilos para notificações
 const style = document.createElement('style');
 style.textContent = `
     .badge {

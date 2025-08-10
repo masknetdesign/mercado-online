@@ -284,7 +284,19 @@ class SupabaseClient {
         }
 
         try {
-            const fileName = `${Date.now()}-${file.name}`;
+            // Função para sanitizar nome do arquivo
+            function sanitizeFileName(name) {
+                return name
+                    .normalize('NFD') // Decompõe caracteres acentuados
+                    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+                    .toLowerCase()
+                    .replace(/[^a-z0-9.]/g, '-') // Substitui caracteres especiais por hífen (mantém ponto para extensão)
+                    .replace(/-+/g, '-') // Remove hífens duplicados
+                    .replace(/^-|-$/g, ''); // Remove hífens do início e fim
+            }
+            
+            const sanitizedName = sanitizeFileName(file.name);
+            const fileName = `${Date.now()}-${sanitizedName}`;
             const { data, error } = await this.supabase.storage
                 .from(SUPABASE_CONFIG.bucketName)
                 .upload(fileName, file);

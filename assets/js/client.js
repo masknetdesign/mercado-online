@@ -189,11 +189,28 @@ function showSection(sectionName) {
 
 // Busca de produtos
 function handleSearch() {
+    console.log('🔍 handleSearch chamada');
     const searchInput = document.getElementById('search-input');
-    AppState.searchTerm = searchInput.value.toLowerCase().trim();
+    
+    if (!searchInput) {
+        console.error('❌ Elemento search-input não encontrado!');
+        return;
+    }
+    
+    const searchValue = searchInput.value.toLowerCase().trim();
+    console.log('🔍 Termo de busca:', searchValue);
+    console.log('🔍 Produtos disponíveis:', AppState.products.length);
+    
+    AppState.searchTerm = searchValue;
     AppState.currentPage = 1;
+    
+    console.log('🔍 Aplicando filtros...');
     filterProducts();
+    
+    console.log('🔍 Produtos filtrados:', AppState.filteredProducts.length);
     renderProducts();
+    
+    console.log('🔍 Busca concluída');
 }
 
 // Filtro por categoria
@@ -210,26 +227,58 @@ function filterByCategory(category) {
     renderProducts();
 }
 
+// Função para normalizar texto (remove acentos e caracteres especiais)
+function normalizeText(text) {
+    if (!text) return '';
+    return text
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+        .replace(/[^a-z0-9\s]/g, '') // Remove caracteres especiais
+        .trim();
+}
+
 // Aplicação de filtros
 function filterProducts() {
+    console.log('🔧 filterProducts iniciada');
+    console.log('🔧 Categoria atual:', AppState.currentCategory);
+    console.log('🔧 Termo de busca:', AppState.searchTerm);
+    
     let filtered = [...AppState.products];
+    console.log('🔧 Produtos iniciais:', filtered.length);
     
     // Filtro por categoria
     if (AppState.currentCategory !== 'all') {
         filtered = filtered.filter(product => 
             product.categoria === AppState.currentCategory
         );
+        console.log('🔧 Após filtro categoria:', filtered.length);
     }
     
     // Filtro por busca
     if (AppState.searchTerm) {
-        filtered = filtered.filter(product =>
-            product.nome.toLowerCase().includes(AppState.searchTerm) ||
-            (product.descricao && product.descricao.toLowerCase().includes(AppState.searchTerm))
-        );
+        console.log('🔧 Aplicando filtro de busca para:', AppState.searchTerm);
+        const normalizedSearchTerm = normalizeText(AppState.searchTerm);
+        console.log('🔧 Termo normalizado:', normalizedSearchTerm);
+        
+        filtered = filtered.filter(product => {
+            const normalizedNome = normalizeText(product.nome);
+            const normalizedDesc = normalizeText(product.descricao);
+            
+            const nomeMatch = normalizedNome.includes(normalizedSearchTerm);
+            const descMatch = normalizedDesc.includes(normalizedSearchTerm);
+            const match = nomeMatch || descMatch;
+            
+            if (match) {
+                console.log('🔧 Produto encontrado:', product.nome, '(normalizado:', normalizedNome, ')');
+            }
+            return match;
+        });
+        console.log('🔧 Após filtro busca:', filtered.length);
     }
     
     AppState.filteredProducts = filtered;
+    console.log('🔧 Produtos filtrados finais:', AppState.filteredProducts.length);
     
     // Ajusta a página atual se necessário
     const totalPages = Math.ceil(filtered.length / AppState.productsPerPage);
@@ -351,7 +400,7 @@ function updatePagination() {
     const prevBtn = document.getElementById('prev-page');
     const nextBtn = document.getElementById('next-page');
     const pageInfo = document.getElementById('page-info');
-    const paginationContainer = document.querySelector('.pagination-controls');
+    const paginationContainer = document.querySelector('.pagination');
     
     if (!prevBtn || !nextBtn || !pageInfo) return;
     

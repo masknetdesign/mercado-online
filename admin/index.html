@@ -47,6 +47,9 @@
                 <a href="#adicionar" class="nav-item" data-section="adicionar">
                     <i class="fas fa-plus"></i> Adicionar Produto
                 </a>
+                <a href="#importar" class="nav-item" data-section="importar">
+                    <i class="fas fa-file-csv"></i> Importar CSV
+                </a>
                 <a href="#configuracoes" class="nav-item" data-section="configuracoes">
                     <i class="fas fa-cog"></i> Configurações
                 </a>
@@ -205,6 +208,129 @@
                         <button type="submit" class="btn btn-success" id="save-product-btn">Salvar Produto</button>
                     </div>
                 </form>
+            </section>
+
+            <!-- Import CSV Section -->
+            <section id="importar-section" class="content-section">
+                <div class="section-header">
+                    <h2>Importar Produtos em Massa</h2>
+                    <p class="section-description">Importe múltiplos produtos de uma vez usando um arquivo CSV</p>
+                </div>
+
+                <div class="import-container">
+                    <!-- Instruções -->
+                    <div class="import-instructions">
+                        <h3><i class="fas fa-info-circle"></i> Como usar:</h3>
+                        <ol>
+                            <li>Baixe o modelo CSV clicando no botão abaixo</li>
+                            <li>Preencha o arquivo com os dados dos produtos</li>
+                            <li>Selecione o arquivo preenchido e clique em "Importar"</li>
+                        </ol>
+                        
+                        <div class="csv-format">
+                            <h4>Formato do CSV:</h4>
+                            <div class="csv-example">
+                                <code>nome,categoria,preco,descricao,imagem</code><br>
+                                <code>"Maçã Fuji","frutas","3.50","Maçã doce e crocante","maca-fuji.jpg"</code><br>
+                                <code>"Coca-Cola 2L","bebidas","8.90","Refrigerante de cola","coca-cola.jpg"</code>
+                            </div>
+                            <p><strong>Nota:</strong> A coluna "imagem" é opcional. Se fornecida, deve corresponder ao nome do arquivo de imagem (sem caminho).</p>
+                        </div>
+                        
+                        <div class="csv-categories">
+                            <h4>Categorias disponíveis:</h4>
+                            <span class="category-tag">frutas</span>
+                            <span class="category-tag">bebidas</span>
+                            <span class="category-tag">limpeza</span>
+                            <span class="category-tag">padaria</span>
+                            <span class="category-tag">carnes</span>
+                            <span class="category-tag">outros</span>
+                            <span class="category-tag">grãos e cereais</span>
+                            <span class="category-tag">açúcares e adoçantes</span>
+                            <span class="category-tag">óleos e temperos</span>
+                            <span class="category-tag">cafés e bebidas</span>
+                            <span class="category-tag">massas</span>
+                            <span class="category-tag">temperos</span>
+                            <span class="category-tag">laticínios</span>
+                        </div>
+                    </div>
+
+                    <!-- Download Template -->
+                    <div class="import-actions">
+                        <button class="btn btn-secondary" onclick="downloadCSVTemplate()">
+                            <i class="fas fa-download"></i> Baixar Modelo CSV
+                        </button>
+                    </div>
+
+                    <!-- Upload Form -->
+                    <form id="csv-import-form" class="csv-import-form">
+                        <div class="form-group">
+                            <label for="csv-file">Selecionar arquivo CSV:</label>
+                            <input type="file" id="csv-file" accept=".csv" required>
+                            <small>Apenas arquivos .csv são aceitos</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="images-files">Selecionar imagens dos produtos (opcional):</label>
+                            <input type="file" id="images-files" accept="image/*" multiple>
+                            <small>Selecione as imagens dos produtos. Os nomes dos arquivos devem corresponder aos nomes dos produtos no CSV (ex: "produto1.jpg")</small>
+                        </div>
+                        
+                        <div class="import-options">
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="skip-duplicates" checked>
+                                    Pular produtos duplicados (mesmo nome)
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="validate-prices" checked>
+                                    Validar preços (deve ser maior que 0)
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-upload"></i> Importar Produtos
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Import Results -->
+                    <div id="import-results" class="import-results" style="display: none;">
+                        <h3>Resultado da Importação</h3>
+                        <div class="results-summary">
+                            <div class="result-stat success">
+                                <span class="result-number" id="imported-count">0</span>
+                                <span class="result-label">Importados</span>
+                            </div>
+                            <div class="result-stat error">
+                                <span class="result-number" id="error-count">0</span>
+                                <span class="result-label">Erros</span>
+                            </div>
+                            <div class="result-stat warning">
+                                <span class="result-number" id="skipped-count">0</span>
+                                <span class="result-label">Ignorados</span>
+                            </div>
+                        </div>
+                        
+                        <div id="import-errors" class="import-errors" style="display: none;">
+                            <h4>Erros encontrados:</h4>
+                            <ul id="error-list"></ul>
+                        </div>
+                        
+                        <div class="results-actions">
+                            <button class="btn btn-primary" onclick="showSection('produtos')">
+                                <i class="fas fa-list"></i> Ver Produtos
+                            </button>
+                            <button class="btn btn-secondary" onclick="resetImportForm()">
+                                <i class="fas fa-redo"></i> Nova Importação
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- Settings Section -->

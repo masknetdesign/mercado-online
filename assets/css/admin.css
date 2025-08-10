@@ -668,3 +668,258 @@ body {
     }
 }
 
+/* Import CSV Section */
+.import-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.section-description {
+    color: #666;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+}
+
+.import-instructions {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.import-instructions h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.import-instructions ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.import-instructions li {
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+
+.csv-format {
+    margin: 1.5rem 0;
+}
+
+.csv-format h4 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.csv-example {
+    background: #2d3748;
+    color: #e2e8f0;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    overflow-x: auto;
+}
+
+.csv-categories {
+    margin-top: 1.5rem;
+}
+
+.csv-categories h4 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.category-tag {
+    display: inline-block;
+    background: #3498db;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    margin: 0.25rem 0.5rem 0.25rem 0;
+}
+
+.import-actions {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.csv-import-form {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.csv-import-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.csv-import-form .form-group:last-child {
+    margin-bottom: 0;
+}
+
+.csv-import-form input[type="file"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.csv-import-form input[type="file"]:hover {
+    border-color: #3498db;
+    background: #e3f2fd;
+}
+
+.csv-import-form input[type="file"]:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.import-options {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.import-options .form-group {
+    margin-bottom: 1rem;
+}
+
+.import-options .form-group:last-child {
+    margin-bottom: 0;
+}
+
+.import-options label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.import-options input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.import-results {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.import-results h3 {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.results-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.result-stat {
+    text-align: center;
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 2px solid;
+}
+
+.result-stat.success {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+}
+
+.result-stat.error {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+}
+
+.result-stat.warning {
+    background: #fff3cd;
+    border-color: #ffc107;
+    color: #856404;
+}
+
+.result-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.result-label {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.import-errors {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.import-errors h4 {
+    color: #721c24;
+    margin-bottom: 1rem;
+}
+
+.import-errors ul {
+    margin-left: 1.5rem;
+}
+
+.import-errors li {
+    color: #721c24;
+    margin-bottom: 0.5rem;
+}
+
+.results-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Responsive adjustments for import section */
+@media (max-width: 768px) {
+    .import-container {
+        padding: 0 1rem;
+    }
+    
+    .import-instructions,
+    .csv-import-form,
+    .import-results {
+        padding: 1.5rem;
+    }
+    
+    .results-summary {
+        grid-template-columns: 1fr;
+    }
+    
+    .results-actions {
+        flex-direction: column;
+    }
+}
+
