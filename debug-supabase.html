@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Supabase</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .log { margin: 5px 0; padding: 5px; background: #f0f0f0; border-radius: 3px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .warning { background: #fff3e0; color: #ef6c00; }
+    </style>
+</head>
+<body>
+    <h1>Debug Supabase</h1>
+    <div id="logs"></div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        const logsDiv = document.getElementById('logs');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            logsDiv.appendChild(div);
+            console.log(message);
+        }
+        
+        // Teste 1: Verificar se o SDK foi carregado
+        log('=== TESTE 1: Verificando SDK do Supabase ===');
+        if (typeof window.supabase !== 'undefined') {
+            log('✓ SDK do Supabase carregado com sucesso', 'success');
+            log(`Versão: ${window.supabase.version || 'desconhecida'}`);
+        } else {
+            log('✗ SDK do Supabase NÃO foi carregado', 'error');
+        }
+        
+        // Teste 2: Testar criação do cliente
+        log('\n=== TESTE 2: Criando cliente Supabase ===');
+        const SUPABASE_URL = 'https://prpssphzpvubcvfkoxik.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBycHNzcGh6cHZ1YmN2ZmtveGlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3NTA2ODAsImV4cCI6MjA3MDMyNjY4MH0.L7AUzARgp9p2TBugKGbvBpIDix9N4rwL-U-lRpgeh3U';
+        
+        try {
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            log('✓ Cliente Supabase criado com sucesso', 'success');
+            
+            // Teste 3: Testar conexão básica
+            log('\n=== TESTE 3: Testando conexão com banco ===');
+            supabase
+                .from('produtos')
+                .select('count')
+                .limit(1)
+                .then(({ data, error }) => {
+                    if (error) {
+                        log(`✗ Erro na conexão: ${error.message}`, 'error');
+                        log(`Detalhes do erro: ${JSON.stringify(error, null, 2)}`);
+                    } else {
+                        log('✓ Conexão com banco bem-sucedida!', 'success');
+                        log(`Dados retornados: ${JSON.stringify(data, null, 2)}`);
+                    }
+                })
+                .catch(err => {
+                    log(`✗ Erro na requisição: ${err.message}`, 'error');
+                });
+                
+            // Teste 4: Testar busca de produtos
+            log('\n=== TESTE 4: Buscando produtos ===');
+            supabase
+                .from('produtos')
+                .select('*')
+                .limit(5)
+                .then(({ data, error }) => {
+                    if (error) {
+                        log(`✗ Erro ao buscar produtos: ${error.message}`, 'error');
+                    } else {
+                        log(`✓ Produtos encontrados: ${data.length}`, 'success');
+                        if (data.length > 0) {
+                            log(`Primeiro produto: ${JSON.stringify(data[0], null, 2)}`);
+                        }
+                    }
+                })
+                .catch(err => {
+                    log(`✗ Erro na busca: ${err.message}`, 'error');
+                });
+                
+        } catch (error) {
+            log(`✗ Erro ao criar cliente: ${error.message}`, 'error');
+        }
+        
+        // Teste 5: Verificar se nosso arquivo supabase.js está funcionando
+        log('\n=== TESTE 5: Carregando nosso arquivo supabase.js ===');
+        const script = document.createElement('script');
+        script.src = 'assets/js/supabase.js';
+        script.onload = () => {
+            log('✓ Arquivo supabase.js carregado', 'success');
+            
+            setTimeout(() => {
+                if (window.supabaseClient) {
+                    log('✓ supabaseClient disponível', 'success');
+                    if (window.supabaseClient.demoMode) {
+                        log('⚠ Sistema está em modo DEMO', 'warning');
+                    } else {
+                        log('✓ Sistema conectado ao Supabase real', 'success');
+                    }
+                } else {
+                    log('✗ supabaseClient não encontrado', 'error');
+                }
+            }, 1000);
+        };
+        script.onerror = () => {
+            log('✗ Erro ao carregar supabase.js', 'error');
+        };
+        document.head.appendChild(script);
+    </script>
+</body>
+</html>

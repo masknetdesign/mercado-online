@@ -4,7 +4,9 @@ const AdminState = {
     products: [],
     currentSection: 'dashboard',
     editingProduct: null,
-    whatsappNumber: '5511999999999'
+    whatsappNumber: '5511999999999',
+    listenersInitialized: false,
+    isLoading: false
 };
 
 // Inicialização da aplicação
@@ -13,22 +15,33 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function initializeAdmin() {
-    // Verifica se o usuário já está logado
-    const currentUser = await supabaseClient.getCurrentUser();
-    
-    if (currentUser) {
-        AdminState.user = currentUser;
-        showDashboard();
-        await loadAdminData();
-    } else {
+    try {
+        // Inicializa event listeners primeiro
+        initializeEventListeners();
+        
+        // Verifica se o usuário já está logado
+        const currentUser = await supabaseClient.getCurrentUser();
+        
+        if (currentUser) {
+            AdminState.user = currentUser;
+            showDashboard();
+            await loadAdminData();
+        } else {
+            showLoginScreen();
+        }
+    } catch (error) {
+        console.error('Erro na inicialização:', error);
         showLoginScreen();
     }
-    
-    initializeEventListeners();
 }
 
 // Event Listeners
 function initializeEventListeners() {
+    // Evita múltiplas inicializações
+    if (AdminState.listenersInitialized) {
+        return;
+    }
+    
     // Login form
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
@@ -45,10 +58,19 @@ function initializeEventListeners() {
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', function(e) {
             e.preventDefault();
+            e.stopPropagation();
             const section = this.getAttribute('data-section');
-            showSection(section);
+            if (section && section !== 'undefined') {
+                console.log('Navegando para seção:', section);
+                showSection(section);
+            } else {
+                console.error('Seção inválida:', section);
+            }
         });
     });
+    
+    AdminState.listenersInitialized = true;
+    console.log('Event listeners inicializados');
     
     // Product form
     const productForm = document.getElementById('product-form');
@@ -147,44 +169,82 @@ function showDashboard() {
 }
 
 function showSection(sectionName) {
-    // Remove active de todas as seções
-    document.querySelectorAll('.content-section').forEach(section => {
-        section.classList.remove('active');
-    });
+    // Evita processamento se já está na seção atual
+    if (AdminState.currentSection === sectionName && !AdminState.isLoading) {
+        console.log('Já está na seção:', sectionName);
+        return;
+    }
     
-    // Remove active de todos os nav items
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
+    console.log('Mudando para seção:', sectionName);
     
-    // Ativa a seção atual
-    document.getElementById(`${sectionName}-section`).classList.add('active');
-    document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
-    
-    // Atualiza título da página
-    const titles = {
-        dashboard: 'Dashboard',
-        produtos: 'Gerenciar Produtos',
-        adicionar: 'Adicionar Produto',
-        configuracoes: 'Configurações'
-    };
-    
-    document.getElementById('page-title').textContent = titles[sectionName] || sectionName;
-    
-    AdminState.currentSection = sectionName;
-    
-    // Carrega dados específicos da seção
-    if (sectionName === 'produtos') {
-        renderProductsTable();
-    } else if (sectionName === 'adicionar') {
-        resetProductForm();
-    } else if (sectionName === 'configuracoes') {
-        loadSettings();
+    try {
+        // Remove active de todas as seções
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Remove active de todos os nav items
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        // Ativa a seção atual
+        const targetSection = document.getElementById(`${sectionName}-section`);
+        const targetNavItem = document.querySelector(`[data-section="${sectionName}"]`);
+        
+        if (targetSection) {
+            targetSection.classList.add('active');
+        } else {
+            console.error('Seção não encontrada:', `${sectionName}-section`);
+            return;
+        }
+        
+        if (targetNavItem) {
+            targetNavItem.classList.add('active');
+        }
+        
+        // Atualiza título da página
+        const titles = {
+            dashboard: 'Dashboard',
+            produtos: 'Gerenciar Produtos',
+            adicionar: 'Adicionar Produto',
+            configuracoes: 'Configurações'
+        };
+        
+        const pageTitle = document.getElementById('page-title');
+        if (pageTitle) {
+            pageTitle.textContent = titles[sectionName] || sectionName;
+        }
+        
+        AdminState.currentSection = sectionName;
+        
+        // Carrega dados específicos da seção
+        if (sectionName === 'produtos') {
+            renderProductsTable();
+        } else if (sectionName === 'adicionar') {
+            // Só reseta o formulário se não estiver editando um produto
+            if (!AdminState.editingProduct) {
+                resetProductForm();
+            }
+        } else if (sectionName === 'configuracoes') {
+            loadSettings();
+        }
+        
+    } catch (error) {
+        console.error('Erro ao mudar seção:', error);
     }
 }
 
 // Carregamento de dados
 async function loadAdminData() {
+    // Evita múltiplas chamadas simultâneas
+    if (AdminState.isLoading) {
+        console.log('Dados já estão sendo carregados...');
+        return;
+    }
+    
+    AdminState.isLoading = true;
+    console.log('Carregando dados do admin...');
     showLoading(true);
     
     try {
@@ -198,6 +258,7 @@ async function loadAdminData() {
         }
         
         AdminState.products = data || [];
+        console.log('Produtos carregados:', AdminState.products.length);
         
         // Atualiza dashboard
         updateDashboardStats();
@@ -209,10 +270,12 @@ async function loadAdminData() {
         
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
+        AdminState.products = [];
         showNotification('Erro ao carregar dados', 'error');
+    } finally {
+        AdminState.isLoading = false;
+        showLoading(false);
     }
-    
-    showLoading(false);
 }
 
 // Dashboard
@@ -228,47 +291,75 @@ function updateDashboardStats() {
 
 // Gerenciamento de produtos
 function renderProductsTable() {
-    const tbody = document.getElementById('products-table-body');
-    const noProducts = document.getElementById('no-products');
-    const tableContainer = document.querySelector('.products-table-container');
+    console.log('Renderizando tabela de produtos...');
     
-    if (AdminState.products.length === 0) {
-        tableContainer.style.display = 'none';
-        noProducts.style.display = 'block';
+    // Evita renderização múltipla
+    if (AdminState.isLoading) {
+        console.log('Já está carregando produtos, aguarde...');
         return;
     }
     
-    tableContainer.style.display = 'block';
-    noProducts.style.display = 'none';
+    AdminState.isLoading = true;
     
-    tbody.innerHTML = AdminState.products.map(product => `
-        <tr>
-            <td>
-                <img src="${product.url_imagem}" alt="${product.nome}" class="product-table-image"
-                     onerror="this.src='https://via.placeholder.com/60x60?text=Sem+Imagem'">
-            </td>
-            <td>
-                <div class="product-table-name">${product.nome}</div>
-                <small style="color: #666;">${product.descricao || ''}</small>
-            </td>
-            <td>
-                <span class="badge badge-${getCategoryColor(product.categoria)}">${getCategoryName(product.categoria)}</span>
-            </td>
-            <td>
-                <div class="product-table-price">${formatPrice(product.preco)}</div>
-            </td>
-            <td>
-                <div class="product-table-actions">
-                    <button class="btn btn-primary btn-sm" onclick="editProduct(${product.id})">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct(${product.id}, '${product.nome}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
+    try {
+        const tbody = document.getElementById('products-table-body');
+        const noProducts = document.getElementById('no-products');
+        const tableContainer = document.querySelector('.products-table-container');
+        
+        if (!tbody || !noProducts || !tableContainer) {
+            console.error('Elementos da tabela não encontrados');
+            AdminState.isLoading = false;
+            return;
+        }
+        
+        if (!AdminState.products || AdminState.products.length === 0) {
+            console.log('Nenhum produto encontrado');
+            tableContainer.style.display = 'none';
+            noProducts.style.display = 'block';
+            AdminState.isLoading = false;
+            return;
+        }
+        
+        console.log(`Renderizando ${AdminState.products.length} produtos`);
+        tableContainer.style.display = 'block';
+        noProducts.style.display = 'none';
+        
+        tbody.innerHTML = AdminState.products.map(product => `
+            <tr>
+                <td>
+                    <img src="${product.url_imagem}" alt="${product.nome}" class="product-table-image"
+                         onerror="this.src='../assets/images/placeholder.svg'">
+                </td>
+                <td>
+                    <div class="product-table-name">${product.nome}</div>
+                    <small style="color: #666;">${product.descricao || ''}</small>
+                </td>
+                <td>
+                    <span class="badge badge-${getCategoryColor(product.categoria)}">${getCategoryName(product.categoria)}</span>
+                </td>
+                <td>
+                    <div class="product-table-price">${formatPrice(product.preco)}</div>
+                </td>
+                <td>
+                    <div class="product-table-actions">
+                        <button class="btn btn-primary btn-sm" onclick="editProduct(${product.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct(${product.id}, '${product.nome}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+        
+        console.log('Tabela de produtos renderizada com sucesso');
+        
+    } catch (error) {
+        console.error('Erro ao renderizar tabela de produtos:', error);
+    } finally {
+        AdminState.isLoading = false;
+    }
 }
 
 function getCategoryColor(category) {
@@ -297,41 +388,81 @@ function getCategoryName(category) {
 
 // Formulário de produto
 function resetProductForm() {
-    document.getElementById('product-form').reset();
-    document.getElementById('product-id').value = '';
-    document.getElementById('form-title').textContent = 'Adicionar Produto';
-    document.getElementById('save-product-btn').textContent = 'Salvar Produto';
-    AdminState.editingProduct = null;
-    removeImagePreview();
+    try {
+        const form = document.getElementById('product-form');
+        const productIdField = document.getElementById('product-id');
+        const formTitle = document.getElementById('form-title');
+        const saveBtn = document.getElementById('save-product-btn');
+        
+        if (form) form.reset();
+        if (productIdField) productIdField.value = '';
+        
+        removeImagePreview();
+        AdminState.editingProduct = null;
+        
+        // Restaura títulos padrão
+        if (formTitle) formTitle.textContent = 'Adicionar Produto';
+        if (saveBtn) saveBtn.textContent = 'Salvar Produto';
+        
+        console.log('Formulário resetado');
+        
+    } catch (error) {
+        console.error('Erro ao resetar formulário:', error);
+    }
 }
 
 function editProduct(productId) {
+    console.log('Editando produto:', productId);
+    
     const product = AdminState.products.find(p => p.id === productId);
-    if (!product) return;
+    if (!product) {
+        console.error('Produto não encontrado:', productId);
+        showNotification('Produto não encontrado!', 'error');
+        return;
+    }
     
     AdminState.editingProduct = product;
     
-    // Preenche o formulário
-    document.getElementById('product-id').value = product.id;
-    document.getElementById('product-name').value = product.nome;
-    document.getElementById('product-description').value = product.descricao || '';
-    document.getElementById('product-price').value = product.preco;
-    document.getElementById('product-category').value = product.categoria;
-    
-    // Mostra preview da imagem atual
-    if (product.url_imagem) {
-        const preview = document.getElementById('image-preview');
-        const img = document.getElementById('preview-img');
-        img.src = product.url_imagem;
-        preview.style.display = 'block';
+    try {
+        // Preenche o formulário
+        const productIdField = document.getElementById('product-id');
+        const productNameField = document.getElementById('product-name');
+        const productDescField = document.getElementById('product-description');
+        const productPriceField = document.getElementById('product-price');
+        const productCategoryField = document.getElementById('product-category');
+        
+        if (productIdField) productIdField.value = product.id;
+        if (productNameField) productNameField.value = product.nome;
+        if (productDescField) productDescField.value = product.descricao || '';
+        if (productPriceField) productPriceField.value = product.preco;
+        if (productCategoryField) productCategoryField.value = product.categoria;
+        
+        // Mostra preview da imagem atual
+        if (product.url_imagem) {
+            const preview = document.getElementById('image-preview');
+            const img = document.getElementById('preview-img');
+            if (preview && img) {
+                img.src = product.url_imagem;
+                preview.style.display = 'block';
+            }
+        }
+        
+        // Atualiza títulos
+        const formTitle = document.getElementById('form-title');
+        const saveBtn = document.getElementById('save-product-btn');
+        
+        if (formTitle) formTitle.textContent = 'Editar Produto';
+        if (saveBtn) saveBtn.textContent = 'Atualizar Produto';
+        
+        // Vai para a seção de adicionar
+        showSection('adicionar');
+        
+        console.log('Produto carregado para edição:', product);
+        
+    } catch (error) {
+        console.error('Erro ao carregar produto para edição:', error);
+        showNotification('Erro ao carregar produto para edição!', 'error');
     }
-    
-    // Atualiza títulos
-    document.getElementById('form-title').textContent = 'Editar Produto';
-    document.getElementById('save-product-btn').textContent = 'Atualizar Produto';
-    
-    // Vai para a seção de adicionar
-    showSection('adicionar');
 }
 
 async function handleProductSubmit(e) {
@@ -357,19 +488,37 @@ async function handleProductSubmit(e) {
         // Upload de imagem se houver
         const imageFile = document.getElementById('product-image').files[0];
         if (imageFile) {
-            const { data: imageData, error: imageError } = await supabaseClient.uploadImage(imageFile);
+            console.log('Iniciando upload da imagem:', imageFile.name, 'Tamanho:', imageFile.size);
             
-            if (imageError) {
-                console.error('Erro no upload da imagem:', imageError);
-                showNotification('Erro ao fazer upload da imagem', 'error');
+            try {
+                const { data: imageData, error: imageError } = await supabaseClient.uploadImage(imageFile);
+                
+                if (imageError) {
+                    console.error('Erro no upload da imagem:', imageError);
+                    showNotification(`Erro ao fazer upload da imagem: ${imageError.message || 'Erro desconhecido'}`, 'error');
+                    showLoading(false);
+                    return;
+                }
+                
+                if (imageData && imageData.publicUrl) {
+                    productData.url_imagem = imageData.publicUrl;
+                    console.log('Upload concluído com sucesso:', imageData.publicUrl);
+                } else {
+                    console.error('Upload retornou dados inválidos:', imageData);
+                    showNotification('Erro: Upload não retornou URL válida', 'error');
+                    showLoading(false);
+                    return;
+                }
+            } catch (uploadError) {
+                console.error('Exceção durante upload:', uploadError);
+                showNotification('Erro inesperado durante upload da imagem', 'error');
                 showLoading(false);
                 return;
             }
-            
-            productData.url_imagem = imageData.publicUrl;
         } else if (AdminState.editingProduct) {
             // Mantém a imagem atual se não houver nova imagem
             productData.url_imagem = AdminState.editingProduct.url_imagem;
+            console.log('Mantendo imagem atual:', productData.url_imagem);
         }
         
         let result;
@@ -406,7 +555,10 @@ async function handleProductSubmit(e) {
 }
 
 function cancelProductForm() {
+    console.log('Cancelando edição/adição de produto');
+    resetProductForm();
     showSection('produtos');
+    showNotification('Operação cancelada', 'info');
 }
 
 // Upload de imagem

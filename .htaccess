@@ -1,0 +1,40 @@
+# Redirecionamentos para compatibilidade local
+RewriteEngine On
+
+# Redirecionar /admin para /admin/
+RewriteRule ^admin$ /admin/ [R=301,L]
+
+# Redirecionar /client para /client/
+RewriteRule ^client$ /client/ [R=301,L]
+
+# Página inicial redireciona para client
+RewriteRule ^$ /client/ [R=301,L]
+
+# Tratar URLs sem extensão
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([^.]+)$ $1.html [NC,L]
+
+# Configurações de cache
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+</IfModule>
+
+# Configurações de segurança
+<Files ".htaccess">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Prevenir acesso a arquivos de configuração
+<FilesMatch "\.(env|toml|md)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

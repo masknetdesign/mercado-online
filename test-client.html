@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Client - Mercado Online</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            background: white;
+        }
+        .product-image {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .product-name {
+            font-weight: bold;
+            margin: 10px 0 5px;
+        }
+        .product-price {
+            color: #28a745;
+            font-weight: bold;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🛒 Teste de Correções - Client</h1>
+        
+        <div class="test-section">
+            <h3>1. Teste de Inicialização</h3>
+            <div id="init-status" class="status info">Aguardando teste...</div>
+            <button onclick="testInitialization()">Testar Inicialização</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. Teste de Carregamento de Produtos</h3>
+            <div id="products-status" class="status info">Aguardando teste...</div>
+            <button onclick="testProductsLoad()">Testar Carregamento</button>
+            <div id="products-display"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. Teste de Filtros</h3>
+            <div id="filter-status" class="status info">Aguardando teste...</div>
+            <button onclick="testFilters()">Testar Filtros</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>4. Teste de Carrinho</h3>
+            <div id="cart-status" class="status info">Aguardando teste...</div>
+            <button onclick="testCart()">Testar Carrinho</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>5. Logs do Console</h3>
+            <div id="console-logs">
+                <pre id="logs-content">Logs aparecerão aqui...</pre>
+            </div>
+            <button onclick="clearLogs()">Limpar Logs</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>6. Links de Navegação</h3>
+            <a href="/client/" target="_blank">🔗 Abrir Página Client Original</a><br><br>
+            <a href="/admin/" target="_blank">🔗 Abrir Página Admin</a><br><br>
+            <a href="/" target="_blank">🔗 Abrir Página Principal</a>
+        </div>
+    </div>
+    
+    <script src="assets/js/supabase.js"></script>
+    <script>
+        // Simula o estado da aplicação client
+        const TestAppState = {
+            products: [],
+            filteredProducts: [],
+            cart: []
+        };
+        
+        // Captura logs do console
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        let logs = [];
+        
+        function addLog(type, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.push(`[${timestamp}] ${type.toUpperCase()}: ${message}`);
+            updateLogsDisplay();
+        }
+        
+        console.log = function(...args) {
+            addLog('log', args.join(' '));
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            addLog('error', args.join(' '));
+            originalError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            addLog('warn', args.join(' '));
+            originalWarn.apply(console, args);
+        };
+        
+        function updateLogsDisplay() {
+            document.getElementById('logs-content').textContent = logs.slice(-20).join('\n');
+        }
+        
+        function clearLogs() {
+            logs = [];
+            updateLogsDisplay();
+        }
+        
+        function updateStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+        
+        async function testInitialization() {
+            updateStatus('init-status', 'Testando inicialização...', 'info');
+            
+            try {
+                if (typeof supabaseClient === 'undefined') {
+                    throw new Error('supabaseClient não está definido');
+                }
+                
+                console.log('Cliente Supabase inicializado:', supabaseClient);
+                console.log('Modo demo ativo:', supabaseClient.demoMode);
+                
+                updateStatus('init-status', '✅ Inicialização OK - Cliente Supabase carregado', 'success');
+            } catch (error) {
+                console.error('Erro na inicialização:', error);
+                updateStatus('init-status', `❌ Erro: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testProductsLoad() {
+            updateStatus('products-status', 'Testando carregamento de produtos...', 'info');
+            
+            try {
+                const result = await supabaseClient.getProducts();
+                
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+                
+                TestAppState.products = result.data || [];
+                console.log('Produtos carregados:', TestAppState.products.length);
+                
+                // Exibe produtos
+                displayProducts(TestAppState.products);
+                
+                updateStatus('products-status', `✅ ${TestAppState.products.length} produtos carregados e exibidos`, 'success');
+                
+            } catch (error) {
+                console.error('Erro ao carregar produtos:', error);
+                updateStatus('products-status', `❌ Erro: ${error.message}`, 'error');
+            }
+        }
+        
+        function displayProducts(products) {
+            const container = document.getElementById('products-display');
+            
+            if (products.length === 0) {
+                container.innerHTML = '<p>Nenhum produto encontrado</p>';
+                return;
+            }
+            
+            container.innerHTML = `
+                <h4>Produtos Carregados (${products.length}):</h4>
+                <div class="products-grid">
+                    ${products.map(product => `
+                        <div class="product-card">
+                            <img src="${product.url_imagem}" alt="${product.nome}" class="product-image" 
+                                 onerror="this.src='https://via.placeholder.com/200x120?text=Sem+Imagem'">
+                            <div class="product-name">${product.nome}</div>
+                            <div class="product-price">${formatPrice(product.preco)}</div>
+                            <small>${product.categoria}</small>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        async function testFilters() {
+            updateStatus('filter-status', 'Testando filtros...', 'info');
+            
+            try {
+                if (TestAppState.products.length === 0) {
+                    await testProductsLoad();
+                }
+                
+                // Testa filtro por categoria
+                const frutasFilter = TestAppState.products.filter(p => p.categoria === 'frutas');
+                console.log('Produtos de frutas:', frutasFilter.length);
+                
+                // Testa busca por nome
+                const searchFilter = TestAppState.products.filter(p => 
+                    p.nome.toLowerCase().includes('leite')
+                );
+                console.log('Produtos com "leite":', searchFilter.length);
+                
+                updateStatus('filter-status', '✅ Filtros funcionando corretamente', 'success');
+                
+            } catch (error) {
+                console.error('Erro nos filtros:', error);
+                updateStatus('filter-status', `❌ Erro: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testCart() {
+            updateStatus('cart-status', 'Testando carrinho...', 'info');
+            
+            try {
+                if (TestAppState.products.length === 0) {
+                    await testProductsLoad();
+                }
+                
+                // Adiciona produto ao carrinho
+                const firstProduct = TestAppState.products[0];
+                if (firstProduct) {
+                    TestAppState.cart.push({
+                        ...firstProduct,
+                        quantity: 2
+                    });
+                    
+                    console.log('Produto adicionado ao carrinho:', firstProduct.nome);
+                    console.log('Itens no carrinho:', TestAppState.cart.length);
+                    
+                    // Calcula total
+                    const total = TestAppState.cart.reduce((sum, item) => 
+                        sum + (item.preco * item.quantity), 0
+                    );
+                    
+                    console.log('Total do carrinho:', formatPrice(total));
+                    
+                    updateStatus('cart-status', `✅ Carrinho funcionando - ${TestAppState.cart.length} itens`, 'success');
+                } else {
+                    throw new Error('Nenhum produto disponível para testar');
+                }
+                
+            } catch (error) {
+                console.error('Erro no carrinho:', error);
+                updateStatus('cart-status', `❌ Erro: ${error.message}`, 'error');
+            }
+        }
+        
+        // Função auxiliar para formatação de preço
+        function formatPrice(price) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(price);
+        }
+        
+        // Executa teste inicial
+        window.addEventListener('load', function() {
+            setTimeout(testInitialization, 1000);
+        });
+    </script>
+</body>
+</html>

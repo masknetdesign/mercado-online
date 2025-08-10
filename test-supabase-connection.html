@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Conexão Supabase</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button { margin: 5px; padding: 10px 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Teste de Conexão Supabase</h1>
+    <div id="results"></div>
+    
+    <button onclick="testConnection()">Testar Conexão</button>
+    <button onclick="testGetProducts()">Testar Buscar Produtos</button>
+    <button onclick="testAddProduct()">Testar Adicionar Produto</button>
+    <button onclick="testUpdateProduct()">Testar Atualizar Produto</button>
+    <button onclick="testDeleteProduct()">Testar Deletar Produto</button>
+    <button onclick="clearResults()">Limpar Resultados</button>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase.js"></script>
+    <script>
+        const resultsDiv = document.getElementById('results');
+        
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            resultsDiv.appendChild(div);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+        
+        function clearResults() {
+            resultsDiv.innerHTML = '';
+        }
+        
+        async function testConnection() {
+            addResult('Testando conexão com Supabase...');
+            
+            if (window.supabaseClient) {
+                if (window.supabaseClient.demoMode) {
+                    addResult('Sistema está em modo DEMO - não conectado ao Supabase real', 'error');
+                } else {
+                    addResult('Cliente Supabase inicializado com sucesso!', 'success');
+                    
+                    try {
+                        // Teste simples de conexão
+                        const { data, error } = await window.supabaseClient.supabase
+                            .from('produtos')
+                            .select('count')
+                            .limit(1);
+                        
+                        if (error) {
+                            addResult(`Erro na conexão: ${error.message}`, 'error');
+                        } else {
+                            addResult('Conexão com banco de dados bem-sucedida!', 'success');
+                        }
+                    } catch (err) {
+                        addResult(`Erro ao testar conexão: ${err.message}`, 'error');
+                    }
+                }
+            } else {
+                addResult('Cliente Supabase não encontrado!', 'error');
+            }
+        }
+        
+        async function testGetProducts() {
+            addResult('Testando busca de produtos...');
+            
+            try {
+                const products = await window.supabaseClient.getProducts();
+                addResult(`Produtos encontrados: ${products.length}`, 'success');
+                addResult(`Primeiro produto: ${JSON.stringify(products[0], null, 2)}`, 'info');
+            } catch (err) {
+                addResult(`Erro ao buscar produtos: ${err.message}`, 'error');
+            }
+        }
+        
+        async function testAddProduct() {
+            addResult('Testando adição de produto...');
+            
+            const testProduct = {
+                nome: 'Produto Teste ' + Date.now(),
+                preco: 9.99,
+                categoria: 'Teste',
+                url_imagem: 'https://via.placeholder.com/150'
+            };
+            
+            try {
+                const result = await window.supabaseClient.addProduct(testProduct);
+                if (result.success) {
+                    addResult(`Produto adicionado com sucesso! ID: ${result.data.id}`, 'success');
+                    window.testProductId = result.data.id; // Salvar para testes posteriores
+                } else {
+                    addResult(`Erro ao adicionar produto: ${result.error}`, 'error');
+                }
+            } catch (err) {
+                addResult(`Erro ao adicionar produto: ${err.message}`, 'error');
+            }
+        }
+        
+        async function testUpdateProduct() {
+            if (!window.testProductId) {
+                addResult('Execute primeiro o teste de adicionar produto!', 'error');
+                return;
+            }
+            
+            addResult('Testando atualização de produto...');
+            
+            const updatedData = {
+                nome: 'Produto Teste Atualizado ' + Date.now(),
+                preco: 19.99
+            };
+            
+            try {
+                const result = await window.supabaseClient.updateProduct(window.testProductId, updatedData);
+                if (result.success) {
+                    addResult('Produto atualizado com sucesso!', 'success');
+                } else {
+                    addResult(`Erro ao atualizar produto: ${result.error}`, 'error');
+                }
+            } catch (err) {
+                addResult(`Erro ao atualizar produto: ${err.message}`, 'error');
+            }
+        }
+        
+        async function testDeleteProduct() {
+            if (!window.testProductId) {
+                addResult('Execute primeiro o teste de adicionar produto!', 'error');
+                return;
+            }
+            
+            addResult('Testando exclusão de produto...');
+            
+            try {
+                const result = await window.supabaseClient.deleteProduct(window.testProductId);
+                if (result.success) {
+                    addResult('Produto deletado com sucesso!', 'success');
+                    window.testProductId = null;
+                } else {
+                    addResult(`Erro ao deletar produto: ${result.error}`, 'error');
+                }
+            } catch (err) {
+                addResult(`Erro ao deletar produto: ${err.message}`, 'error');
+            }
+        }
+        
+        // Executar teste de conexão automaticamente
+        window.addEventListener('load', () => {
+            setTimeout(testConnection, 1000);
+        });
+    </script>
+</body>
+</html>

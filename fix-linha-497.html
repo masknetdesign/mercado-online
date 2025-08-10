@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Correção Específica - Erro RLS Linha 497</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .error-info {
+            background: #fff5f5;
+            border-left: 5px solid #ff6b6b;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .error-info h3 {
+            color: #c53030;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .error-code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+
+        .solution-steps {
+            background: #f0fff4;
+            border-left: 5px solid #38a169;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .solution-steps h3 {
+            color: #2f855a;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .step-number {
+            background: #38a169;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #fa709a, #fee140);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .script-preview {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .highlight {
+            background: #ffd700;
+            color: #000;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .warning {
+            background: #fffbeb;
+            border-left: 5px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .warning h4 {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            background: #f0fff4;
+            border: 2px solid #38a169;
+            color: #2f855a;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Correção Específica</h1>
+            <p>Erro RLS na Linha 497 do admin.js</p>
+        </div>
+
+        <div class="content">
+            <div class="error-info">
+                <h3>🚨 Erro Identificado:</h3>
+                <div class="error-code">
+                    admin.js:497 Erro no upload da imagem: StorageApiError: new row violates row-level security policy
+                </div>
+                <p><strong>Localização:</strong> Linha 497 do arquivo <code>admin.js</code></p>
+                <p><strong>Função:</strong> <code>supabaseClient.uploadImage(imageFile)</code></p>
+                <p><strong>Bucket:</strong> <span class="highlight">produtos-images</span></p>
+            </div>
+
+            <div class="solution-steps">
+                <h3>🔧 Solução Direcionada:</h3>
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div>Verificar e criar o bucket <strong>produtos-images</strong> se não existir</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div>Remover todas as políticas RLS conflitantes</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div>Criar políticas <strong>ultra-permissivas</strong> para upload</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div>Verificar e habilitar RLS corretamente</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div>Testar o upload na linha 497</div>
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button class="btn btn-primary pulse" onclick="copyScript()">
+                    📋 Copiar Script SQL
+                </button>
+                <a href="https://supabase.com/dashboard" target="_blank" class="btn btn-success">
+                    🚀 Abrir Supabase Dashboard
+                </a>
+                <button class="btn btn-warning" onclick="showPreview()">
+                    👁️ Visualizar Script
+                </button>
+            </div>
+
+            <div class="warning">
+                <h4>⚠️ Importante:</h4>
+                <ul>
+                    <li>Este script foi criado especificamente para resolver o erro da <strong>linha 497</strong></li>
+                    <li>Execute no <strong>Supabase SQL Editor</strong> com privilégios administrativos</li>
+                    <li>O script cria políticas <strong>ultra-permissivas</strong> para garantir funcionamento</li>
+                    <li>Teste o upload imediatamente após executar</li>
+                </ul>
+            </div>
+
+            <div id="scriptPreview" class="script-preview" style="display: none;">
+                <div style="color: #4ade80; margin-bottom: 10px;">-- CORREÇÃO ESPECÍFICA PARA ERRO RLS LINHA 497</div>
+                <div style="color: #60a5fa;">-- StorageApiError: new row violates row-level security policy</div>
+                <div style="color: #fbbf24;">-- Bucket: produtos-images</div>
+                <div style="color: #f87171;">-- Função: supabaseClient.uploadImage()</div>
+                <br>
+                <div style="color: #a78bfa;">BEGIN;</div>
+                <div style="color: #34d399;">-- 1. Verificar/Criar bucket produtos-images</div>
+                <div style="color: #34d399;">-- 2. Remover políticas conflitantes</div>
+                <div style="color: #34d399;">-- 3. Criar políticas ultra-permissivas</div>
+                <div style="color: #34d399;">-- 4. Habilitar RLS</div>
+                <div style="color: #34d399;">-- 5. Verificação final</div>
+                <div style="color: #a78bfa;">COMMIT;</div>
+            </div>
+
+            <div id="successMessage" class="success-message">
+                ✅ Script copiado! Agora cole no Supabase SQL Editor e execute.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function copyScript() {
+            try {
+                const response = await fetch('fix-rls-linha-497.sql');
+                const script = await response.text();
+                
+                await navigator.clipboard.writeText(script);
+                
+                const successMsg = document.getElementById('successMessage');
+                successMsg.style.display = 'block';
+                
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 3000);
+                
+            } catch (error) {
+                // Fallback: mostrar o script para cópia manual
+                const scriptContent = `-- ========================================
+-- CORREÇÃO ESPECÍFICA PARA ERRO RLS LINHA 497
+-- StorageApiError: new row violates row-level security policy
+-- ========================================
+
+-- Este script resolve especificamente o erro que ocorre na linha 497 do admin.js
+-- durante o upload de imagem para o bucket 'produtos-images'
+
+BEGIN;
+
+-- 1. VERIFICAR SE O BUCKET EXISTE
+DO $$
+BEGIN
+    -- Verificar se o bucket produtos-images existe
+    IF NOT EXISTS (SELECT 1 FROM storage.buckets WHERE id = 'produtos-images') THEN
+        RAISE NOTICE 'Bucket produtos-images não existe. Criando...';
+        
+        -- Criar o bucket
+        INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+        VALUES (
+            'produtos-images',
+            'produtos-images', 
+            true,
+            104857600, -- 100MB
+            ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+        );
+        
+        RAISE NOTICE 'Bucket produtos-images criado com sucesso!';
+    ELSE
+        RAISE NOTICE 'Bucket produtos-images já existe.';
+        
+        -- Garantir que o bucket seja público
+        UPDATE storage.buckets 
+        SET public = true,
+            file_size_limit = 104857600,
+            allowed_mime_types = ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+        WHERE id = 'produtos-images';
+        
+        RAISE NOTICE 'Configurações do bucket atualizadas.';
+    END IF;
+END
+$$;
+
+-- 2. REMOVER TODAS AS POLÍTICAS RLS EXISTENTES PARA O BUCKET
+DO $$
+DECLARE
+    policy_record RECORD;
+BEGIN
+    -- Listar e remover todas as políticas RLS para storage.objects relacionadas ao bucket produtos-images
+    FOR policy_record IN 
+        SELECT schemaname, tablename, policyname 
+        FROM pg_policies 
+        WHERE schemaname = 'storage' 
+        AND tablename = 'objects'
+        AND policyname LIKE '%produtos%' OR policyname LIKE '%images%' OR policyname LIKE '%upload%'
+    LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I', 
+                      policy_record.policyname, 
+                      policy_record.schemaname, 
+                      policy_record.tablename);
+        RAISE NOTICE 'Política removida: %', policy_record.policyname;
+    END LOOP;
+END
+$$;
+
+-- 3. CRIAR POLÍTICA RLS ULTRA-PERMISSIVA PARA UPLOAD
+DO $$
+BEGIN
+    -- Política para permitir INSERT (upload) - ULTRA PERMISSIVA
+    CREATE POLICY "produtos_images_upload_policy" ON storage.objects
+    FOR INSERT
+    WITH CHECK (
+        bucket_id = 'produtos-images'
+    );
+    
+    RAISE NOTICE 'Política de upload criada: produtos_images_upload_policy';
+    
+    -- Política para permitir SELECT (visualização) - ULTRA PERMISSIVA
+    CREATE POLICY "produtos_images_select_policy" ON storage.objects
+    FOR SELECT
+    USING (
+        bucket_id = 'produtos-images'
+    );
+    
+    RAISE NOTICE 'Política de visualização criada: produtos_images_select_policy';
+    
+    -- Política para permitir UPDATE - ULTRA PERMISSIVA
+    CREATE POLICY "produtos_images_update_policy" ON storage.objects
+    FOR UPDATE
+    USING (
+        bucket_id = 'produtos-images'
+    )
+    WITH CHECK (
+        bucket_id = 'produtos-images'
+    );
+    
+    RAISE NOTICE 'Política de atualização criada: produtos_images_update_policy';
+    
+    -- Política para permitir DELETE - ULTRA PERMISSIVA
+    CREATE POLICY "produtos_images_delete_policy" ON storage.objects
+    FOR DELETE
+    USING (
+        bucket_id = 'produtos-images'
+    );
+    
+    RAISE NOTICE 'Política de exclusão criada: produtos_images_delete_policy';
+    
+EXCEPTION
+    WHEN duplicate_object THEN
+        RAISE NOTICE 'Algumas políticas já existem, continuando...';
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Erro ao criar políticas: %', SQLERRM;
+END
+$$;
+
+-- 4. VERIFICAR SE RLS ESTÁ HABILITADO
+DO $$
+BEGIN
+    -- Verificar se RLS está habilitado na tabela storage.objects
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_class c 
+        JOIN pg_namespace n ON n.oid = c.relnamespace 
+        WHERE n.nspname = 'storage' 
+        AND c.relname = 'objects' 
+        AND c.relrowsecurity = true
+    ) THEN
+        -- Habilitar RLS se não estiver habilitado
+        ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+        RAISE NOTICE 'RLS habilitado na tabela storage.objects';
+    ELSE
+        RAISE NOTICE 'RLS já está habilitado na tabela storage.objects';
+    END IF;
+END
+$$;
+
+-- 5. TESTE DE VERIFICAÇÃO
+DO $$
+BEGIN
+    RAISE NOTICE '========================================';
+    RAISE NOTICE 'VERIFICAÇÃO FINAL:';
+    RAISE NOTICE '========================================';
+    
+    -- Verificar bucket
+    IF EXISTS (SELECT 1 FROM storage.buckets WHERE id = 'produtos-images' AND public = true) THEN
+        RAISE NOTICE '✅ Bucket produtos-images existe e é público';
+    ELSE
+        RAISE NOTICE '❌ Problema com o bucket produtos-images';
+    END IF;
+    
+    -- Verificar políticas
+    IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'produtos_images_upload_policy') THEN
+        RAISE NOTICE '✅ Política de upload existe';
+    ELSE
+        RAISE NOTICE '❌ Política de upload não encontrada';
+    END IF;
+    
+    -- Verificar RLS
+    IF EXISTS (
+        SELECT 1 FROM pg_class c 
+        JOIN pg_namespace n ON n.oid = c.relnamespace 
+        WHERE n.nspname = 'storage' 
+        AND c.relname = 'objects' 
+        AND c.relrowsecurity = true
+    ) THEN
+        RAISE NOTICE '✅ RLS está habilitado';
+    ELSE
+        RAISE NOTICE '❌ RLS não está habilitado';
+    END IF;
+    
+    RAISE NOTICE '========================================';
+    RAISE NOTICE 'CORREÇÃO CONCLUÍDA!';
+    RAISE NOTICE 'Agora teste o upload de imagem na linha 497';
+    RAISE NOTICE '========================================';
+END
+$$;
+
+COMMIT;`;
+                
+                navigator.clipboard.writeText(scriptContent).then(() => {
+                    const successMsg = document.getElementById('successMessage');
+                    successMsg.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        successMsg.style.display = 'none';
+                    }, 3000);
+                });
+            }
+        }
+
+        function showPreview() {
+            const preview = document.getElementById('scriptPreview');
+            if (preview.style.display === 'none') {
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

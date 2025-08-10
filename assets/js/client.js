@@ -16,49 +16,80 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function initializeApp() {
-    showLoading(true);
-    
-    // Carrega produtos
-    await loadProducts();
-    
-    // Carrega configurações
-    loadSettings();
-    
-    // Carrega carrinho do localStorage
-    loadCart();
-    
-    // Inicializa event listeners
-    initializeEventListeners();
-    
-    // Renderiza produtos em destaque
-    renderFeaturedProducts();
-    
-    // Renderiza todos os produtos
-    renderProducts();
-    
-    // Atualiza contador do carrinho
-    updateCartCount();
-    
-    showLoading(false);
+    try {
+        showLoading(true);
+        
+        // Inicializa event listeners primeiro
+        initializeEventListeners();
+        
+        // Carrega configurações
+        loadSettings();
+        
+        // Carrega carrinho do localStorage
+        loadCart();
+        
+        // Carrega produtos
+        await loadProducts();
+        
+        // Renderiza produtos em destaque
+        renderFeaturedProducts();
+        
+        // Renderiza todos os produtos
+        renderProducts();
+        
+        // Atualiza contador do carrinho
+        updateCartCount();
+        
+        showLoading(false);
+        
+        console.log('App inicializada com sucesso. Produtos carregados:', AppState.products.length);
+        
+    } catch (error) {
+        console.error('Erro na inicialização da app:', error);
+        showLoading(false);
+        showNotification('Erro ao carregar a aplicação', 'error');
+    }
 }
 
 // Carregamento de produtos
 async function loadProducts() {
     try {
+        console.log('Carregando produtos...');
+        showLoading(true);
+        
         const { data, error } = await supabaseClient.getProducts();
         
         if (error) {
             console.error('Erro ao carregar produtos:', error);
-            showNotification('Erro ao carregar produtos', 'error');
+            showNotification('Erro ao carregar produtos. Usando modo demonstração.', 'warning');
+            // Em caso de erro, usa produtos de demonstração
+            AppState.products = [];
+            AppState.filteredProducts = [];
+            showLoading(false);
             return;
         }
         
         AppState.products = data || [];
         AppState.filteredProducts = [...AppState.products];
         
+        console.log('Produtos carregados:', AppState.products.length);
+        
+        if (AppState.products.length === 0) {
+            console.log('Nenhum produto encontrado. Verifique se há produtos cadastrados.');
+            showNotification('Nenhum produto encontrado. Verifique se há produtos cadastrados no sistema.', 'info');
+        } else {
+            const modeText = supabaseClient.demoMode ? 'modo demonstração' : 'Supabase';
+            showNotification(`${AppState.products.length} produtos carregados do ${modeText}!`, 'success');
+        }
+        
+        showLoading(false);
+        
     } catch (error) {
         console.error('Erro ao carregar produtos:', error);
-        showNotification('Erro ao carregar produtos', 'error');
+        showNotification('Erro ao carregar produtos. Usando modo demonstração.', 'warning');
+        AppState.products = [];
+        AppState.filteredProducts = [];
+        showLoading(false);
     }
 }
 
@@ -194,17 +225,56 @@ function filterProducts() {
     if (AppState.searchTerm) {
         filtered = filtered.filter(product =>
             product.nome.toLowerCase().includes(AppState.searchTerm) ||
-            product.descricao.toLowerCase().includes(AppState.searchTerm)
+            (product.descricao && product.descricao.toLowerCase().includes(AppState.searchTerm))
         );
     }
     
     AppState.filteredProducts = filtered;
+    
+    // Ajusta a página atual se necessário
+    const totalPages = Math.ceil(filtered.length / AppState.productsPerPage);
+    if (AppState.currentPage > totalPages && totalPages > 0) {
+        AppState.currentPage = totalPages;
+    } else if (totalPages === 0) {
+        AppState.currentPage = 1;
+    }
+}
+
+// Limpar filtros
+function clearFilters() {
+    AppState.searchTerm = '';
+    AppState.currentCategory = 'all';
+    AppState.currentPage = 1;
+    
+    // Atualiza interface
+    document.getElementById('search-input').value = '';
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector('[data-category="all"]').classList.add('active');
+    
+    filterProducts();
+    renderProducts();
+    showNotification('Filtros removidos', 'info');
 }
 
 // Renderização de produtos em destaque
 function renderFeaturedProducts() {
     const container = document.getElementById('featured-products');
+    
+    if (!container) return;
+    
     const featured = AppState.products.slice(0, 6); // Primeiros 6 produtos
+    
+    if (featured.length === 0) {
+        container.innerHTML = `
+            <div class="no-products" style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
+                <i class="fas fa-box-open" style="font-size: 2rem; color: #bdc3c7; margin-bottom: 1rem;"></i>
+                <p>Nenhum produto em destaque disponível</p>
+            </div>
+        `;
+        return;
+    }
     
     container.innerHTML = featured.map(product => createProductCard(product)).join('');
 }
@@ -212,15 +282,33 @@ function renderFeaturedProducts() {
 // Renderização de produtos
 function renderProducts() {
     const container = document.getElementById('products-grid');
+    
+    if (!container) return;
+    
     const startIndex = (AppState.currentPage - 1) * AppState.productsPerPage;
     const endIndex = startIndex + AppState.productsPerPage;
     const productsToShow = AppState.filteredProducts.slice(startIndex, endIndex);
     
     if (productsToShow.length === 0) {
+        let message = 'Nenhum produto encontrado';
+        let icon = 'fas fa-search';
+        
+        if (AppState.products.length === 0) {
+            message = 'Nenhum produto disponível no momento';
+            icon = 'fas fa-box-open';
+        } else if (AppState.searchTerm) {
+            message = `Nenhum produto encontrado para "${AppState.searchTerm}"`;
+        } else if (AppState.currentCategory !== 'all') {
+            message = `Nenhum produto encontrado na categoria "${AppState.currentCategory}"`;
+        }
+        
         container.innerHTML = `
             <div class="no-products" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-                <i class="fas fa-search" style="font-size: 3rem; color: #bdc3c7; margin-bottom: 1rem;"></i>
-                <p>Nenhum produto encontrado</p>
+                <i class="${icon}" style="font-size: 3rem; color: #bdc3c7; margin-bottom: 1rem;"></i>
+                <p>${message}</p>
+                ${AppState.searchTerm || AppState.currentCategory !== 'all' ? 
+                    '<button class="btn btn-primary" onclick="clearFilters()">Limpar Filtros</button>' : 
+                    ''}
             </div>
         `;
     } else {
@@ -237,7 +325,7 @@ function createProductCard(product) {
     return `
         <div class="product-card">
             <img src="${product.url_imagem}" alt="${product.nome}" class="product-image" 
-                 onerror="this.src='https://via.placeholder.com/300x200?text=Sem+Imagem'">
+                 onerror="this.src='../assets/images/placeholder.svg'">
             <div class="product-info">
                 <h3 class="product-name">${product.nome}</h3>
                 <p class="product-description">${product.descricao || ''}</p>
@@ -263,10 +351,25 @@ function updatePagination() {
     const prevBtn = document.getElementById('prev-page');
     const nextBtn = document.getElementById('next-page');
     const pageInfo = document.getElementById('page-info');
+    const paginationContainer = document.querySelector('.pagination-controls');
+    
+    if (!prevBtn || !nextBtn || !pageInfo) return;
+    
+    // Oculta paginação se não há produtos ou apenas uma página
+    if (totalPages <= 1) {
+        if (paginationContainer) {
+            paginationContainer.style.display = 'none';
+        }
+        return;
+    } else {
+        if (paginationContainer) {
+            paginationContainer.style.display = 'flex';
+        }
+    }
     
     prevBtn.disabled = AppState.currentPage === 1;
-    nextBtn.disabled = AppState.currentPage === totalPages || totalPages === 0;
-    pageInfo.textContent = `Página ${AppState.currentPage} de ${totalPages || 1}`;
+    nextBtn.disabled = AppState.currentPage >= totalPages;
+    pageInfo.textContent = `Página ${AppState.currentPage} de ${totalPages}`;
 }
 
 // Mudança de página
@@ -362,7 +465,7 @@ function renderCart() {
     cartItems.innerHTML = AppState.cart.map(item => `
         <div class="cart-item">
             <img src="${item.url_imagem}" alt="${item.nome}" class="cart-item-image"
-                 onerror="this.src='https://via.placeholder.com/80x80?text=Sem+Imagem'">
+                 onerror="this.src='../assets/images/placeholder.svg'">
             <div class="cart-item-info">
                 <div class="cart-item-name">${item.nome}</div>
                 <div class="cart-item-price">${formatPrice(item.preco)} cada</div>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Usuário Admin - Supabase</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover { background: #0056b3; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #1e7e34; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-warning:hover { background: #e0a800; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        .logs {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .test-section {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .credentials {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👤 Verificar Usuário Admin - Supabase</h1>
+        <p>Esta ferramenta ajuda a diagnosticar se o problema do erro 400 é a falta de usuário administrador no Supabase.</p>
+        
+        <div class="status info" id="main-status">Aguardando verificação...</div>
+        
+        <div class="test-section">
+            <h3>🔍 1. Verificar Conexão com Supabase</h3>
+            <button onclick="testSupabaseConnection()">Testar Conexão</button>
+            <div id="connection-status"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>👤 2. Testar Login Admin</h3>
+            <p>Teste com diferentes credenciais para verificar se o usuário existe:</p>
+            
+            <div class="credentials">
+                <strong>Credenciais Padrão:</strong><br>
+                Email: admin@mercado.com<br>
+                Senha: admin123
+            </div>
+            
+            <button onclick="testLogin('admin@mercado.com', 'admin123')">Testar Credenciais Padrão</button>
+            <button onclick="testLogin('admin@demo.com', 'demo123')">Testar Credenciais Demo</button>
+            
+            <div style="margin: 10px 0;">
+                <input type="email" id="custom-email" placeholder="Seu email" style="padding: 8px; margin: 5px;">
+                <input type="password" id="custom-password" placeholder="Sua senha" style="padding: 8px; margin: 5px;">
+                <button onclick="testCustomLogin()">Testar Credenciais Personalizadas</button>
+            </div>
+            
+            <div id="login-status"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔧 3. Diagnóstico Automático</h3>
+            <button onclick="runFullDiagnosis()" class="btn-warning">Executar Diagnóstico Completo</button>
+            <div id="diagnosis-status"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📋 4. Instruções de Correção</h3>
+            <div id="instructions" style="display: none;">
+                <div class="step">
+                    <h4>✅ Como Criar Usuário Admin:</h4>
+                    <ol>
+                        <li>Acesse: <a href="https://supabase.com/dashboard" target="_blank">https://supabase.com/dashboard</a></li>
+                        <li>Selecione seu projeto</li>
+                        <li>Vá para <strong>Authentication</strong> → <strong>Users</strong></li>
+                        <li>Clique em <strong>"Add user"</strong></li>
+                        <li>Preencha:
+                            <div class="credentials">
+                                Email: admin@mercado.com<br>
+                                Password: admin123<br>
+                                Email Confirm: ✅ (marcar)
+                            </div>
+                        </li>
+                        <li>Clique em <strong>"Create user"</strong></li>
+                    </ol>
+                </div>
+            </div>
+            <button onclick="showInstructions()">Mostrar Instruções</button>
+        </div>
+        
+        <h3>📝 Logs de Diagnóstico</h3>
+        <div class="logs" id="logs">Logs aparecerão aqui...</div>
+        <button onclick="clearLogs()">Limpar Logs</button>
+        
+        <h3>🔗 Links Úteis</h3>
+        <a href="/admin/" target="_blank">🔗 Abrir Admin</a> |
+        <a href="/test-fix-400.html" target="_blank">🔗 Teste Erro 400</a> |
+        <a href="https://supabase.com/dashboard" target="_blank">🔗 Painel Supabase</a>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/supabase.js"></script>
+    
+    <script>
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#dc3545' : type === 'warn' ? '#ffc107' : type === 'success' ? '#28a745' : '#6c757d';
+            logs.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        function updateStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = `status ${type}`;
+        }
+        
+        async function testSupabaseConnection() {
+            addLog('🔍 Testando conexão com Supabase...');
+            updateStatus('connection-status', 'Testando conexão...', 'info');
+            
+            try {
+                if (!window.supabaseClient) {
+                    throw new Error('supabaseClient não encontrado');
+                }
+                
+                if (window.supabaseClient.demoMode) {
+                    addLog('⚠️ Sistema em modo demo - Supabase não está sendo usado', 'warn');
+                    updateStatus('connection-status', '⚠️ Sistema em modo demo - Configure o Supabase para usar autenticação real', 'warning');
+                    return;
+                }
+                
+                // Testa uma operação simples
+                const { data, error } = await window.supabaseClient.supabase.from('produtos').select('count').limit(1);
+                
+                if (error) {
+                    if (error.code === '42P01') {
+                        addLog('❌ Tabela "produtos" não encontrada - Execute o script supabase-setup.sql', 'error');
+                        updateStatus('connection-status', '❌ Tabelas não criadas - Execute config/supabase-setup.sql', 'error');
+                    } else {
+                        addLog(`❌ Erro na conexão: ${error.message}`, 'error');
+                        updateStatus('connection-status', `❌ Erro: ${error.message}`, 'error');
+                    }
+                } else {
+                    addLog('✅ Conexão com Supabase funcionando', 'success');
+                    updateStatus('connection-status', '✅ Conexão com Supabase OK', 'success');
+                }
+                
+            } catch (error) {
+                addLog(`❌ Erro: ${error.message}`, 'error');
+                updateStatus('connection-status', `❌ Erro: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testLogin(email, password) {
+            addLog(`👤 Testando login: ${email}`);
+            updateStatus('login-status', `Testando login: ${email}...`, 'info');
+            
+            try {
+                const result = await window.supabaseClient.signIn(email, password);
+                
+                if (result.error) {
+                    if (result.error.includes('Invalid login credentials') || result.error.includes('Invalid credentials')) {
+                        addLog(`❌ Usuário não encontrado ou senha incorreta: ${email}`, 'error');
+                        updateStatus('login-status', `❌ Usuário não existe ou senha incorreta: ${email}`, 'error');
+                        showInstructions();
+                    } else {
+                        addLog(`❌ Erro no login: ${result.error}`, 'error');
+                        updateStatus('login-status', `❌ Erro: ${result.error}`, 'error');
+                    }
+                } else {
+                    addLog(`✅ Login bem-sucedido: ${email}`, 'success');
+                    updateStatus('login-status', `✅ Login funcionando: ${email}`, 'success');
+                    updateStatus('main-status', '✅ Usuário admin encontrado! O problema não é falta de usuário.', 'success');
+                    
+                    // Logout
+                    await window.supabaseClient.signOut();
+                    addLog('🚪 Logout realizado');
+                }
+                
+            } catch (error) {
+                addLog(`❌ Erro: ${error.message}`, 'error');
+                updateStatus('login-status', `❌ Erro: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testCustomLogin() {
+            const email = document.getElementById('custom-email').value;
+            const password = document.getElementById('custom-password').value;
+            
+            if (!email || !password) {
+                addLog('⚠️ Preencha email e senha', 'warn');
+                return;
+            }
+            
+            await testLogin(email, password);
+        }
+        
+        async function runFullDiagnosis() {
+            addLog('🔧 Iniciando diagnóstico completo...');
+            updateStatus('diagnosis-status', 'Executando diagnóstico...', 'info');
+            
+            // 1. Testar conexão
+            await testSupabaseConnection();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 2. Testar credenciais padrão
+            await testLogin('admin@mercado.com', 'admin123');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 3. Testar credenciais demo
+            await testLogin('admin@demo.com', 'demo123');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // 4. Verificar modo demo
+            if (window.supabaseClient && window.supabaseClient.demoMode) {
+                addLog('📊 Sistema está em modo demo', 'warn');
+                updateStatus('diagnosis-status', '⚠️ Sistema em modo demo - Configure Supabase para produção', 'warning');
+            } else {
+                addLog('📊 Sistema configurado para usar Supabase', 'info');
+                updateStatus('diagnosis-status', '✅ Diagnóstico concluído - Verifique os logs acima', 'info');
+            }
+            
+            addLog('🏁 Diagnóstico completo finalizado');
+        }
+        
+        function showInstructions() {
+            document.getElementById('instructions').style.display = 'block';
+            addLog('📋 Instruções de correção exibidas');
+        }
+        
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = 'Logs limpos...';
+        }
+        
+        // Inicialização
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                addLog('🚀 Ferramenta de diagnóstico carregada');
+                if (window.supabaseClient) {
+                    addLog(`📊 Modo atual: ${window.supabaseClient.demoMode ? 'Demo' : 'Supabase'}`);
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

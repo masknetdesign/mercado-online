@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico e Correção - Políticas RLS Storage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .error {
+            background-color: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background-color: #efe;
+            border: 1px solid #cfc;
+            color: #3c3;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            color: #0066cc;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .step {
+            border-left: 4px solid #007bff;
+            padding-left: 15px;
+            margin: 20px 0;
+        }
+        .sql-code {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .copy-btn {
+            background-color: #28a745;
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+        .error-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 3px solid #dc3545;
+            background-color: #f8f9fa;
+        }
+        .doc-link {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .doc-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Diagnóstico e Correção - Políticas RLS Storage</h1>
+        
+        <div class="error">
+            <h3>🚨 Possíveis Erros Identificados:</h3>
+            <div class="error-item">
+                <strong>Erro 1:</strong> <code>new row violates row-level security policy</code><br>
+                <strong>Causa:</strong> Políticas RLS do Storage muito restritivas<br>
+                <strong>Solução:</strong> Use o script SQL atualizado abaixo
+            </div>
+            <div class="error-item">
+                <strong>Erro 2:</strong> <code>StorageApiError</code> - Políticas RLS restritivas<br>
+                <strong>Causa:</strong> Bucket existe mas políticas bloqueiam operações
+            </div>
+            <div class="error-item">
+                <strong>Erro 3:</strong> <code>ERROR: relation "storage.policies" does not exist</code><br>
+                <strong>Causa:</strong> Storage não habilitado ou bucket não criado<br>
+                <strong>Solução:</strong> <button onclick="copyCheckScript()" class="copy-btn">Copiar Script de Verificação</button><br>
+                <div class="warning" style="margin-top: 10px; padding: 8px; font-size: 12px;">
+                    <strong>⚠️ IMPORTANTE:</strong> NÃO execute scripts de políticas RLS se o Storage não estiver habilitado!
+                </div>
+                <a href="#" onclick="openDocumentation()" class="doc-link">📖 Ver documentação completa</a>
+            </div>
+        </div>
+        
+        <div class="warning">
+            <h3>⚠️ Diagnóstico Automático</h3>
+            <p>Esta ferramenta detectará automaticamente qual erro você está enfrentando e fornecerá a solução adequada.</p>
+            <p><strong>📖 Documentação completa:</strong> <a href="SOLUCAO-STORAGE-NAO-HABILITADO.md" target="_blank">SOLUCAO-STORAGE-NAO-HABILITADO.md</a></p>
+        </div>
+
+        <div class="info">
+            <h3>📋 Diagnóstico Atual</h3>
+            <p>Status da conexão Supabase: <span id="connection-status">Verificando...</span></p>
+            <p>Modo atual: <span id="demo-mode">Verificando...</span></p>
+            <p>Bucket configurado: <span id="bucket-name">Verificando...</span></p>
+        </div>
+
+        <div class="step">
+            <h3>🔍 Passo 1: Verificar Configuração</h3>
+            <button onclick="checkConfiguration()">Verificar Configuração</button>
+            <div id="config-log" class="log"></div>
+        </div>
+
+        <div class="step">
+            <h3>🧪 Passo 2: Testar Upload</h3>
+            <input type="file" id="test-file" accept="image/*">
+            <button onclick="testUpload()">Testar Upload</button>
+            <div id="upload-log" class="log"></div>
+        </div>
+
+        <div class="step">
+            <h3>🛠️ Passo 3: Solução - Script SQL</h3>
+            <div class="warning">
+                <p><strong>⚠️ IMPORTANTE:</strong> Execute este script no SQL Editor do seu projeto Supabase para corrigir as políticas do Storage.</p>
+            </div>
+            
+            <div class="sql-code" id="sql-script">-- Carregando script...</div>
+            <button class="copy-btn" onclick="copySqlScript()">📋 Copiar Script SQL</button>
+            
+
+            
+            <div class="info">
+                <h4>📝 Como executar:</h4>
+                <ol>
+                    <li>Acesse seu projeto no <a href="https://supabase.com" target="_blank">Supabase</a></li>
+                    <li>Vá para <strong>SQL Editor</strong></li>
+                    <li>Cole o script SQL acima</li>
+                    <li>Clique em <strong>Run</strong></li>
+                    <li>Volte aqui e teste novamente o upload</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>🔄 Passo 4: Verificar Correção</h3>
+            <button onclick="verifyFix()">Verificar se foi Corrigido</button>
+            <div id="verify-log" class="log"></div>
+        </div>
+
+        <div class="step">
+            <h3>🎮 Passo 5: Solução Alternativa - Modo Demo</h3>
+            <div class="info">
+                <p><strong>Se o Storage não estiver disponível no seu plano Supabase:</strong></p>
+                <p>Você pode ativar o modo demo para continuar desenvolvendo. O upload será simulado com URLs do Unsplash.</p>
+            </div>
+            <button onclick="enableDemoMode()">🎮 Ativar Modo Demo</button>
+            <div id="demo-log" class="log"></div>
+        </div>
+
+        <div class="step">
+            <h3>🚀 Passo 6: Testar na Aplicação</h3>
+            <p>Após configurar o Storage ou ativar o modo demo:</p>
+            <button onclick="openAdmin()">Abrir Área Administrativa</button>
+            <button onclick="testImageUpload()">Testar Upload Completo</button>
+            <button onclick="openDocumentation()">📖 Ver Documentação Completa</button>
+        </div>
+    </div>
+
+    <script src="assets/js/supabase.js"></script>
+    <script>
+        let logCount = 0;
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+            element.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        function clearLog(elementId) {
+            document.getElementById(elementId).textContent = '';
+        }
+
+        async function checkConfiguration() {
+            clearLog('config-log');
+            log('config-log', 'Iniciando verificação da configuração...');
+            
+            try {
+                // Verificar se o Supabase está configurado
+                if (typeof supabaseClient === 'undefined') {
+                    log('config-log', 'Cliente Supabase não encontrado', 'error');
+                    return;
+                }
+
+                log('config-log', `URL do Supabase: ${supabaseClient.supabaseUrl || 'Não configurado'}`);
+                log('config-log', `Chave Anon: ${supabaseClient.supabaseKey ? 'Configurada' : 'Não configurada'}`);
+                log('config-log', `Bucket: ${supabaseClient.bucketName || 'produtos-images'}`);
+                log('config-log', `Modo Demo: ${supabaseClient.isDemoMode ? 'Ativo' : 'Inativo'}`);
+
+                // Atualizar status na interface
+                document.getElementById('connection-status').textContent = supabaseClient.supabaseUrl ? 'Configurado' : 'Não configurado';
+                document.getElementById('demo-mode').textContent = supabaseClient.isDemoMode ? 'Ativo' : 'Inativo';
+                document.getElementById('bucket-name').textContent = supabaseClient.bucketName || 'produtos-images';
+
+                if (supabaseClient.isDemoMode) {
+                    log('config-log', 'Sistema em modo demo - upload será simulado', 'warning');
+                } else {
+                    log('config-log', 'Sistema configurado para Supabase real', 'success');
+                }
+
+            } catch (error) {
+                log('config-log', `Erro na verificação: ${error.message}`, 'error');
+            }
+        }
+
+        async function testUpload() {
+            clearLog('upload-log');
+            const fileInput = document.getElementById('test-file');
+            
+            if (!fileInput.files[0]) {
+                log('upload-log', 'Selecione um arquivo de imagem primeiro', 'warning');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            log('upload-log', `Testando upload do arquivo: ${file.name} (${file.size} bytes)`);
+
+            try {
+                if (supabaseClient.isDemoMode) {
+                    log('upload-log', 'Modo demo ativo - simulando upload...', 'warning');
+                    const result = await supabaseClient.uploadImage(file);
+                    log('upload-log', `Upload simulado com sucesso: ${result}`, 'success');
+                } else {
+                    log('upload-log', 'Tentando upload real no Supabase...');
+                    const result = await supabaseClient.uploadImage(file);
+                    log('upload-log', `Upload realizado com sucesso: ${result}`, 'success');
+                }
+            } catch (error) {
+                log('upload-log', `❌ ERRO NO UPLOAD: ${error.message}`, 'error');
+                log('upload-log', `Detalhes do erro: ${JSON.stringify(error, null, 2)}`, 'error');
+                
+                if (error.message.includes('row-level security policy')) {
+                    log('upload-log', '🔧 SOLUÇÃO: Execute o script SQL fornecido abaixo para corrigir as políticas RLS', 'warning');
+                }
+            }
+        }
+
+        function copySqlScript() {
+            const script = `-- Script DEFINITIVO para corrigir RLS do Storage Supabase
+-- PROBLEMA: StorageApiError: new row violates row-level security policy
+-- ERRO HTTP: POST 400 (Bad Request)
+-- SOLUÇÃO: Políticas RLS completamente permissivas
+
+-- ========================================
+-- PASSO 1: VERIFICAR STATUS ATUAL
+-- ========================================
+
+-- Verificar se o bucket existe
+SELECT 
+    id, name, public, file_size_limit, allowed_mime_types, created_at
+FROM storage.buckets WHERE id = 'produtos-images';
+
+-- Verificar políticas atuais
+SELECT 
+    id, bucket_id, name, command, definition, check_definition, roles
+FROM storage.policies WHERE bucket_id = 'produtos-images' ORDER BY command;
+
+-- ========================================
+-- PASSO 2: LIMPAR CONFIGURAÇÃO ATUAL
+-- ========================================
+
+-- Remover TODAS as políticas existentes (podem estar conflitando)
+DELETE FROM storage.policies WHERE bucket_id = 'produtos-images';
+
+-- ========================================
+-- PASSO 3: RECRIAR BUCKET COM CONFIGURAÇÃO CORRETA
+-- ========================================
+
+-- Atualizar/criar bucket com configurações otimizadas
+INSERT INTO storage.buckets (
+    id, name, public, file_size_limit, allowed_mime_types,
+    avif_autodetection, created_at, updated_at
+) VALUES (
+    'produtos-images', 'produtos-images', true, 52428800, '{"image/*"}',
+    false, NOW(), NOW()
+) ON CONFLICT (id) DO UPDATE SET
+    public = true, file_size_limit = 52428800, allowed_mime_types = '{"image/*"}',
+    avif_autodetection = false, updated_at = NOW();
+
+-- ========================================
+-- PASSO 4: CRIAR POLÍTICAS ULTRA-PERMISSIVAS
+-- ========================================
+
+-- Política SELECT: Permitir visualização para TODOS
+INSERT INTO storage.policies (
+    id, bucket_id, name, definition, check_definition, command, roles
+) VALUES (
+    'ultra-permissive-select-produtos-images', 'produtos-images',
+    'Ultra permissive SELECT policy', 'true', NULL, 'SELECT', '{anon, authenticated}'
+);
+
+-- Política INSERT: Permitir upload para TODOS
+INSERT INTO storage.policies (
+    id, bucket_id, name, definition, check_definition, command, roles
+) VALUES (
+    'ultra-permissive-insert-produtos-images', 'produtos-images',
+    'Ultra permissive INSERT policy', 'true', 'true', 'INSERT', '{anon, authenticated}'
+);
+
+-- Política UPDATE: Permitir atualização para TODOS
+INSERT INTO storage.policies (
+    id, bucket_id, name, definition, check_definition, command, roles
+) VALUES (
+    'ultra-permissive-update-produtos-images', 'produtos-images',
+    'Ultra permissive UPDATE policy', 'true', 'true', 'UPDATE', '{anon, authenticated}'
+);
+
+-- Política DELETE: Permitir exclusão para TODOS
+INSERT INTO storage.policies (
+    id, bucket_id, name, definition, check_definition, command, roles
+) VALUES (
+    'ultra-permissive-delete-produtos-images', 'produtos-images',
+    'Ultra permissive DELETE policy', 'true', NULL, 'DELETE', '{anon, authenticated}'
+);
+
+-- ========================================
+-- PASSO 5: VERIFICAÇÃO FINAL
+-- ========================================
+
+-- Confirmar bucket configurado
+SELECT 'BUCKET CONFIGURADO' as status, id, name, public, file_size_limit, allowed_mime_types
+FROM storage.buckets WHERE id = 'produtos-images';
+
+-- Confirmar políticas criadas
+SELECT 'POLÍTICAS CRIADAS' as status, command, COUNT(*) as total, string_agg(name, ', ') as policy_names
+FROM storage.policies WHERE bucket_id = 'produtos-images' GROUP BY command ORDER BY command;
+
+-- Verificar se temos as 4 políticas necessárias
+SELECT 
+    CASE 
+        WHEN COUNT(*) = 4 THEN '✅ TODAS AS POLÍTICAS CRIADAS'
+        ELSE '❌ FALTAM POLÍTICAS: ' || (4 - COUNT(*))::text
+    END as resultado_final
+FROM storage.policies WHERE bucket_id = 'produtos-images';
+
+-- ========================================
+-- TESTE FINAL
+-- ========================================
+
+-- Após executar este script:
+-- 1. Vá para: http://localhost:8000/admin/
+-- 2. Tente adicionar um produto com imagem
+-- 3. O erro "new row violates row-level security policy" deve estar resolvido
+-- 4. O upload deve funcionar normalmente
+
+-- IMPORTANTE:
+-- - Este script cria políticas MUITO PERMISSIVAS
+-- - Adequado para desenvolvimento e demonstração
+-- - Em produção, considere políticas mais restritivas baseadas em auth.uid()
+-- - Se ainda houver erro, verifique se está usando a chave anônima correta`;
+            
+            navigator.clipboard.writeText(script).then(() => {
+                alert('Script SQL atualizado copiado para a área de transferência!');
+            }).catch(err => {
+                console.error('Erro ao copiar:', err);
+                alert('Erro ao copiar. Selecione e copie manualmente.');
+            });
+        }
+
+        async function verifyFix() {
+            clearLog('verify-log');
+            log('verify-log', 'Verificando se a correção foi aplicada...');
+            
+            // Simular um teste de upload para verificar
+            const testFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+            
+            try {
+                await testUpload();
+                log('verify-log', 'Teste de verificação concluído - verifique os logs de upload acima', 'success');
+            } catch (error) {
+                log('verify-log', `Ainda há problemas: ${error.message}`, 'error');
+            }
+        }
+
+        function openAdmin() {
+            window.open('/admin/', '_blank');
+        }
+
+        function testImageUpload() {
+            window.open('/test-upload-image.html', '_blank');
+        }
+
+        async function enableDemoMode() {
+            clearLog('demo-log');
+            log('demo-log', 'Ativando modo demo...');
+            
+            try {
+                // Ler o arquivo supabase.js atual
+                const response = await fetch('assets/js/supabase.js');
+                const content = await response.text();
+                
+                // Verificar se já está em modo demo
+                if (content.includes('isDemoMode: true')) {
+                    log('demo-log', 'Modo demo já está ativo!', 'success');
+                    return;
+                }
+                
+                // Instruções para ativar manualmente
+                log('demo-log', 'Para ativar o modo demo:', 'warning');
+                log('demo-log', '1. Abra o arquivo: assets/js/supabase.js');
+                log('demo-log', '2. Localize a linha: isDemoMode: false');
+                log('demo-log', '3. Altere para: isDemoMode: true');
+                log('demo-log', '4. Salve o arquivo');
+                log('demo-log', '5. Recarregue esta página');
+                log('demo-log', '');
+                log('demo-log', 'Ou copie esta configuração:', 'info');
+                log('demo-log', 'const SUPABASE_CONFIG = {');
+                log('demo-log', '    url: "sua-url-aqui",');
+                log('demo-log', '    anonKey: "sua-chave-aqui",');
+                log('demo-log', '    bucketName: "produtos-images",');
+                log('demo-log', '    isDemoMode: true  // ← Altere para true');
+                log('demo-log', '};');
+                
+            } catch (error) {
+                log('demo-log', `Erro ao verificar configuração: ${error.message}`, 'error');
+                log('demo-log', 'Edite manualmente o arquivo assets/js/supabase.js', 'warning');
+            }
+        }
+
+        function openDocumentation() {
+            window.open('SOLUCAO-STORAGE-NAO-HABILITADO.md', '_blank');
+        }
+
+        function copyCheckScript() {
+            const checkScript = `-- Script para verificar se Storage está habilitado
+-- PROBLEMA: ERROR: 42P01: relation "storage.policies" does not exist
+-- Execute esta query PRIMEIRO para verificar o status do Storage
+
+SELECT 
+    CASE 
+        WHEN EXISTS (
+            SELECT 1 FROM information_schema.tables 
+            WHERE table_schema = 'storage' 
+            AND table_name = 'buckets'
+        ) THEN 'STORAGE HABILITADO ✅'
+        ELSE 'STORAGE NÃO HABILITADO ❌'
+    END as status_storage;
+
+-- ========================================
+-- PRÓXIMOS PASSOS BASEADOS NO RESULTADO
+-- ========================================
+
+-- Se retornar "STORAGE HABILITADO ✅":
+--   → Execute o script fix-storage-rls-final.sql
+--   → Continue com a configuração das políticas RLS
+
+-- Se retornar "STORAGE NÃO HABILITADO ❌":
+--   → Vá ao Dashboard do Supabase > Storage
+--   → Se não aparecer "Storage" no menu, seu plano pode não incluir
+--   → Considere upgrade do plano ou use modo demo
+--   → Consulte SOLUCAO-STORAGE-NAO-HABILITADO.md para detalhes
+
+-- IMPORTANTE:
+-- NÃO execute scripts de políticas RLS se Storage não estiver habilitado!`;
+            
+            navigator.clipboard.writeText(checkScript).then(() => {
+                alert('✅ Script de verificação copiado!\n\n📋 Próximos passos:\n1. Cole no SQL Editor do Supabase\n2. Execute a query\n3. Siga as instruções baseadas no resultado');
+            }).catch(err => {
+                console.error('Erro ao copiar:', err);
+                alert('❌ Erro ao copiar. Tente novamente.');
+            });
+        }
+
+        // Carregar script SQL na interface
+        document.addEventListener('DOMContentLoaded', () => {
+            checkConfiguration();
+            
+            // Carregar o script SQL
+            fetch('fix-storage-policies.sql')
+                .then(response => response.text())
+                .then(sql => {
+                    document.getElementById('sql-script').textContent = sql;
+                })
+                .catch(() => {
+                    document.getElementById('sql-script').textContent = 'Erro ao carregar o script SQL. Verifique se o arquivo fix-storage-policies.sql existe.';
+                });
+        });
+    </script>
+</body>
+</html>

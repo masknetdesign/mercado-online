@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solução para Erro de Privilégios - Supabase Storage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .error-display {
+            background: #ffe6e6;
+            border: 2px solid #ff4757;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .error-title {
+            color: #ff4757;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .error-code {
+            background: #ff4757;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .solution-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .solution-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .solution-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #007bff;
+        }
+
+        .solution-card.recommended {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        }
+
+        .solution-card.recommended::before {
+            content: "RECOMENDADO";
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .solution-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .solution-description {
+            color: #6c757d;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #212529;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .instructions {
+            background: #e3f2fd;
+            border-left: 5px solid #2196f3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .instructions h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .warning h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-error { background: #ff4757; }
+        .status-warning { background: #ffa502; }
+        .status-success { background: #2ed573; }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .solution-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔒 Erro de Privilégios Detectado</h1>
+            <p>Solução para usuários sem privilégios administrativos</p>
+        </div>
+
+        <div class="content">
+            <div class="error-display">
+                <div class="error-title">
+                    <span class="status-indicator status-error"></span>
+                    ERRO IDENTIFICADO:
+                </div>
+                <div class="error-code">
+                    ERROR: 42501: must be owner of table objects
+                </div>
+                <p style="margin-top: 15px; color: #666;">
+                    <strong>Causa:</strong> Você não possui privilégios de administrador no projeto Supabase.<br>
+                    <strong>Resultado:</strong> Não é possível modificar políticas RLS diretamente.
+                </p>
+            </div>
+
+            <div class="warning">
+                <h3>⚠️ Situação Atual</h3>
+                <p>Este erro ocorre quando você tenta executar comandos que requerem privilégios de administrador no Supabase. É comum em projetos compartilhados onde você foi adicionado como colaborador, mas não como administrador.</p>
+            </div>
+
+            <h2 style="text-align: center; margin: 40px 0 30px 0; color: #2c3e50;">🎯 Soluções Disponíveis</h2>
+
+            <div class="solution-grid">
+                <!-- Solução 1: Pedir ao Admin -->
+                <div class="solution-card recommended">
+                    <div class="solution-title">👨‍💼 Pedir ao Administrador</div>
+                    <div class="solution-description">
+                        A solução mais eficaz é solicitar que o administrador do projeto execute o script de correção.
+                    </div>
+                    <button class="btn btn-success" onclick="openAdminScript()">📄 Script para Admin</button>
+                    <button class="btn btn-info" onclick="copyAdminMessage()">📧 Copiar Mensagem</button>
+                </div>
+
+                <!-- Solução 2: Diagnóstico -->
+                <div class="solution-card">
+                    <div class="solution-title">🔍 Executar Diagnóstico</div>
+                    <div class="solution-description">
+                        Execute um diagnóstico completo para entender melhor sua situação atual.
+                    </div>
+                    <button class="btn btn-primary" onclick="openDiagnostic()">🔍 Abrir Diagnóstico</button>
+                    <button class="btn btn-info" onclick="copyDiagnostic()">📋 Copiar Script</button>
+                </div>
+
+                <!-- Solução 3: Modo Demo -->
+                <div class="solution-card">
+                    <div class="solution-title">🎮 Modo Demo Temporário</div>
+                    <div class="solution-description">
+                        Use um modo demo offline para continuar desenvolvendo enquanto aguarda a correção.
+                    </div>
+                    <button class="btn btn-warning" onclick="openDemoScript()">🎮 Script Demo</button>
+                    <button class="btn btn-info" onclick="showDemoInstructions()">📖 Instruções</button>
+                </div>
+
+                <!-- Solução 4: Novo Projeto -->
+                <div class="solution-card">
+                    <div class="solution-title">🆕 Criar Novo Projeto</div>
+                    <div class="solution-description">
+                        Crie um novo projeto Supabase onde você será o administrador.
+                    </div>
+                    <a href="https://supabase.com/dashboard" target="_blank" class="btn btn-primary">🚀 Supabase Dashboard</a>
+                    <button class="btn btn-info" onclick="showNewProjectInstructions()">📖 Instruções</button>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h3>📋 Passos Recomendados (Em Ordem de Prioridade)</h3>
+                <ol>
+                    <li><strong>Identifique o Administrador:</strong> Descubra quem é o proprietário ou administrador do projeto Supabase atual.</li>
+                    <li><strong>Execute o Diagnóstico:</strong> Use o script de diagnóstico para entender melhor a situação.</li>
+                    <li><strong>Envie a Mensagem:</strong> Copie a mensagem pré-formatada e envie para o administrador junto com o script.</li>
+                    <li><strong>Use o Modo Demo:</strong> Enquanto aguarda, ative o modo demo para continuar desenvolvendo.</li>
+                    <li><strong>Teste Após Correção:</strong> Quando o administrador executar o script, teste o upload novamente.</li>
+                </ol>
+            </div>
+
+            <div class="instructions">
+                <h3>🔧 Links Úteis</h3>
+                <p>
+                    <a href="https://supabase.com/dashboard" target="_blank" class="btn btn-primary">🌐 Supabase Dashboard</a>
+                    <a href="https://supabase.com/docs/guides/storage" target="_blank" class="btn btn-info">📚 Documentação Storage</a>
+                    <a href="https://supabase.com/docs/guides/auth/row-level-security" target="_blank" class="btn btn-info">🔒 Documentação RLS</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openAdminScript() {
+            window.open('solucao-rls-definitiva.sql', '_blank');
+        }
+
+        function openDiagnostic() {
+            window.open('solucao-sem-admin.sql', '_blank');
+        }
+
+        function openDemoScript() {
+            window.open('ativar-modo-demo-completo.js', '_blank');
+        }
+
+        function copyAdminMessage() {
+            const message = `Olá! Estou com um erro de upload de imagens no projeto Supabase.
+
+ERRO: StorageApiError: new row violates row-level security policy
+CÓDIGO: ERROR: 42501: must be owner of table objects
+
+Preciso que você execute um script SQL para corrigir as políticas RLS.
+
+ARQUIVO: solucao-rls-definitiva.sql
+LOCAL: SQL Editor do Supabase Dashboard
+
+O script vai:
+✅ Remover políticas RLS conflitantes
+✅ Reconfigurar o bucket produtos-images
+✅ Criar políticas permissivas para upload
+✅ Resolver o erro definitivamente
+
+Por favor, execute quando possível. Obrigado!`;
+            
+            navigator.clipboard.writeText(message).then(() => {
+                alert('✅ Mensagem copiada! Cole em um email ou chat para enviar ao administrador.');
+            }).catch(() => {
+                prompt('Copie esta mensagem:', message);
+            });
+        }
+
+        function copyDiagnostic() {
+            fetch('solucao-sem-admin.sql')
+                .then(response => response.text())
+                .then(text => {
+                    navigator.clipboard.writeText(text).then(() => {
+                        alert('✅ Script de diagnóstico copiado! Cole no SQL Editor do Supabase.');
+                    });
+                })
+                .catch(() => {
+                    alert('❌ Erro ao copiar. Abra o arquivo solucao-sem-admin.sql manualmente.');
+                });
+        }
+
+        function showDemoInstructions() {
+            alert(`🎮 INSTRUÇÕES DO MODO DEMO:
+
+1. Abra o Console do navegador (F12)
+2. Vá para a aba "Console"
+3. Abra o arquivo "ativar-modo-demo-completo.js"
+4. Copie todo o conteúdo do arquivo
+5. Cole no Console e pressione Enter
+6. O upload funcionará offline para testes
+
+⚠️ IMPORTANTE:
+- Os dados ficam apenas no navegador
+- É apenas para desenvolvimento/testes
+- Não substitui a correção real do RLS`);
+        }
+
+        function showNewProjectInstructions() {
+            alert(`🆕 CRIAR NOVO PROJETO SUPABASE:
+
+1. Acesse: https://supabase.com/dashboard
+2. Clique em "New Project"
+3. Escolha uma organização
+4. Configure nome e senha do banco
+5. Aguarde a criação (2-3 minutos)
+6. Copie as novas credenciais
+7. Atualize o arquivo supabase.js
+8. Execute o script completo de RLS
+
+✅ VANTAGENS:
+- Você será o administrador
+- Controle total sobre configurações
+- Sem problemas de privilégios`);
+        }
+
+        // Mostrar informações ao carregar
+        window.onload = function() {
+            console.log('🔒 DIAGNÓSTICO DE PRIVILÉGIOS CARREGADO');
+            console.log('📋 Soluções disponíveis para erro: must be owner of table objects');
+            console.log('🎯 Recomendação: Pedir ao administrador para executar o script');
+        };
+    </script>
+</body>
+</html>

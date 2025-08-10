@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste CRUD e Permissões</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .log { margin: 5px 0; padding: 8px; border-radius: 3px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .warning { background: #fff3e0; color: #ef6c00; }
+        .info { background: #e3f2fd; color: #1565c0; }
+        button { margin: 5px; padding: 8px 15px; cursor: pointer; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Teste CRUD e Permissões Supabase</h1>
+    
+    <div class="test-section">
+        <h3>Status da Conexão</h3>
+        <div id="connection-status"></div>
+        <button onclick="testConnection()">Testar Conexão</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>Teste de Leitura (SELECT)</h3>
+        <div id="read-logs"></div>
+        <button onclick="testRead()">Testar Leitura</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>Teste de Inserção (INSERT)</h3>
+        <div id="insert-logs"></div>
+        <button onclick="testInsert()">Testar Inserção</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>Teste de Atualização (UPDATE)</h3>
+        <div id="update-logs"></div>
+        <button onclick="testUpdate()">Testar Atualização</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>Teste de Exclusão (DELETE)</h3>
+        <div id="delete-logs"></div>
+        <button onclick="testDelete()">Testar Exclusão</button>
+    </div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        let supabase;
+        let testProductId = null;
+        
+        function log(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            container.appendChild(div);
+            console.log(`[${containerId}] ${message}`);
+        }
+        
+        function logObject(containerId, obj, title = 'Dados') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = 'log info';
+            div.innerHTML = `<strong>${title}:</strong><pre>${JSON.stringify(obj, null, 2)}</pre>`;
+            container.appendChild(div);
+        }
+        
+        async function testConnection() {
+            const container = 'connection-status';
+            document.getElementById(container).innerHTML = '';
+            
+            log(container, 'Iniciando teste de conexão...');
+            
+            try {
+                // Configurações do Supabase
+                const SUPABASE_URL = 'https://prpssphzpvubcvfkoxik.supabase.co';
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBycHNzcGh6cHZ1YmN2ZmtveGlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3NTA2ODAsImV4cCI6MjA3MDMyNjY4MH0.L7AUzARgp9p2TBugKGbvBpIDix9N4rwL-U-lRpgeh3U';
+                
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                log(container, '✓ Cliente Supabase criado', 'success');
+                
+                // Teste básico de conectividade
+                const { data, error } = await supabase
+                    .from('produtos')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) {
+                    log(container, `✗ Erro na conexão: ${error.message}`, 'error');
+                    logObject(container, error, 'Detalhes do erro');
+                } else {
+                    log(container, '✓ Conexão estabelecida com sucesso!', 'success');
+                }
+                
+            } catch (err) {
+                log(container, `✗ Erro crítico: ${err.message}`, 'error');
+            }
+        }
+        
+        async function testRead() {
+            const container = 'read-logs';
+            document.getElementById(container).innerHTML = '';
+            
+            if (!supabase) {
+                log(container, '⚠ Execute primeiro o teste de conexão', 'warning');
+                return;
+            }
+            
+            log(container, 'Testando leitura de produtos...');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('produtos')
+                    .select('*')
+                    .limit(5);
+                
+                if (error) {
+                    log(container, `✗ Erro na leitura: ${error.message}`, 'error');
+                    logObject(container, error, 'Detalhes do erro');
+                } else {
+                    log(container, `✓ Leitura bem-sucedida! ${data.length} produtos encontrados`, 'success');
+                    if (data.length > 0) {
+                        logObject(container, data[0], 'Primeiro produto');
+                        testProductId = data[0].id; // Salvar para testes posteriores
+                    }
+                }
+                
+            } catch (err) {
+                log(container, `✗ Erro na operação: ${err.message}`, 'error');
+            }
+        }
+        
+        async function testInsert() {
+            const container = 'insert-logs';
+            document.getElementById(container).innerHTML = '';
+            
+            if (!supabase) {
+                log(container, '⚠ Execute primeiro o teste de conexão', 'warning');
+                return;
+            }
+            
+            log(container, 'Testando inserção de produto...');
+            
+            const newProduct = {
+                nome: `Produto Teste ${Date.now()}`,
+                preco: 15.99,
+                categoria: 'Teste',
+                url_imagem: 'https://via.placeholder.com/150'
+            };
+            
+            logObject(container, newProduct, 'Produto a ser inserido');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('produtos')
+                    .insert([newProduct])
+                    .select();
+                
+                if (error) {
+                    log(container, `✗ Erro na inserção: ${error.message}`, 'error');
+                    logObject(container, error, 'Detalhes do erro');
+                    
+                    // Verificar se é erro de RLS
+                    if (error.code === '42501' || error.message.includes('policy')) {
+                        log(container, '⚠ Possível problema de Row Level Security (RLS)', 'warning');
+                        log(container, 'Verifique se as políticas de segurança permitem inserção para usuários anônimos', 'info');
+                    }
+                } else {
+                    log(container, '✓ Inserção bem-sucedida!', 'success');
+                    logObject(container, data[0], 'Produto inserido');
+                    testProductId = data[0].id;
+                }
+                
+            } catch (err) {
+                log(container, `✗ Erro na operação: ${err.message}`, 'error');
+            }
+        }
+        
+        async function testUpdate() {
+            const container = 'update-logs';
+            document.getElementById(container).innerHTML = '';
+            
+            if (!supabase) {
+                log(container, '⚠ Execute primeiro o teste de conexão', 'warning');
+                return;
+            }
+            
+            if (!testProductId) {
+                log(container, '⚠ Execute primeiro o teste de leitura ou inserção para obter um ID', 'warning');
+                return;
+            }
+            
+            log(container, `Testando atualização do produto ID: ${testProductId}`);
+            
+            const updateData = {
+                nome: `Produto Atualizado ${Date.now()}`,
+                preco: 25.99
+            };
+            
+            logObject(container, updateData, 'Dados para atualização');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('produtos')
+                    .update(updateData)
+                    .eq('id', testProductId)
+                    .select();
+                
+                if (error) {
+                    log(container, `✗ Erro na atualização: ${error.message}`, 'error');
+                    logObject(container, error, 'Detalhes do erro');
+                    
+                    if (error.code === '42501' || error.message.includes('policy')) {
+                        log(container, '⚠ Possível problema de Row Level Security (RLS)', 'warning');
+                        log(container, 'Verifique se as políticas de segurança permitem atualização para usuários anônimos', 'info');
+                    }
+                } else {
+                    log(container, '✓ Atualização bem-sucedida!', 'success');
+                    if (data && data.length > 0) {
+                        logObject(container, data[0], 'Produto atualizado');
+                    }
+                }
+                
+            } catch (err) {
+                log(container, `✗ Erro na operação: ${err.message}`, 'error');
+            }
+        }
+        
+        async function testDelete() {
+            const container = 'delete-logs';
+            document.getElementById(container).innerHTML = '';
+            
+            if (!supabase) {
+                log(container, '⚠ Execute primeiro o teste de conexão', 'warning');
+                return;
+            }
+            
+            if (!testProductId) {
+                log(container, '⚠ Execute primeiro o teste de leitura ou inserção para obter um ID', 'warning');
+                return;
+            }
+            
+            log(container, `Testando exclusão do produto ID: ${testProductId}`);
+            
+            try {
+                const { data, error } = await supabase
+                    .from('produtos')
+                    .delete()
+                    .eq('id', testProductId)
+                    .select();
+                
+                if (error) {
+                    log(container, `✗ Erro na exclusão: ${error.message}`, 'error');
+                    logObject(container, error, 'Detalhes do erro');
+                    
+                    if (error.code === '42501' || error.message.includes('policy')) {
+                        log(container, '⚠ Possível problema de Row Level Security (RLS)', 'warning');
+                        log(container, 'Verifique se as políticas de segurança permitem exclusão para usuários anônimos', 'info');
+                    }
+                } else {
+                    log(container, '✓ Exclusão bem-sucedida!', 'success');
+                    if (data && data.length > 0) {
+                        logObject(container, data[0], 'Produto excluído');
+                    }
+                    testProductId = null;
+                }
+                
+            } catch (err) {
+                log(container, `✗ Erro na operação: ${err.message}`, 'error');
+            }
+        }
+        
+        // Executar teste de conexão automaticamente
+        window.addEventListener('load', () => {
+            setTimeout(testConnection, 1000);
+        });
+    </script>
+</body>
+</html>

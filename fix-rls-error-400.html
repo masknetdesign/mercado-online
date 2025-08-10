@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Correção Definitiva - Erro 400 RLS Storage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .error-info {
+            background: #fff5f5;
+            border-left: 5px solid #e53e3e;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .error-info h3 {
+            color: #e53e3e;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .error-code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+        
+        .solution-steps {
+            background: #f0fff4;
+            border-left: 5px solid #38a169;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .solution-steps h3 {
+            color: #38a169;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .step-number {
+            background: #38a169;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        
+        .step-description {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+        
+        .sql-container {
+            background: #1a202c;
+            border-radius: 10px;
+            padding: 0;
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        
+        .sql-header {
+            background: #2d3748;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .sql-header h4 {
+            margin: 0;
+            font-size: 1.1em;
+        }
+        
+        .copy-btn {
+            background: #38a169;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            background: #2f855a;
+            transform: translateY(-2px);
+        }
+        
+        .copy-btn.copied {
+            background: #3182ce;
+        }
+        
+        .sql-code {
+            color: #e2e8f0;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .warning {
+            background: #fffbeb;
+            border-left: 5px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .warning h4 {
+            color: #f59e0b;
+            margin-bottom: 10px;
+        }
+        
+        .success {
+            background: #f0fff4;
+            border-left: 5px solid #38a169;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .success h4 {
+            color: #38a169;
+            margin-bottom: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 5px;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .btn-secondary {
+            background: #718096;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+        
+        .footer {
+            background: #f7fafc;
+            padding: 30px;
+            text-align: center;
+            color: #4a5568;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .highlight {
+            background: #fef5e7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #c05621;
+            font-weight: bold;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Correção Definitiva</h1>
+            <p>Erro 400 - StorageApiError: new row violates row-level security policy</p>
+        </div>
+        
+        <div class="content">
+            <div class="error-info">
+                <h3>❌ Erro Identificado</h3>
+                <p>O sistema está apresentando os seguintes erros ao tentar fazer upload de imagens:</p>
+                <div class="error-code">
+Failed to load resource: the server responded with a status of 400 ()
+StorageApiError: new row violates row-level security policy
+                </div>
+                <p><strong>Causa:</strong> As políticas de Row Level Security (RLS) do Storage Supabase não estão configuradas corretamente para permitir uploads no bucket <span class="highlight">produtos-images</span>.</p>
+            </div>
+            
+            <div class="solution-steps">
+                <h3>✅ Solução em 3 Passos</h3>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div class="step-title">Copiar o Script SQL</div>
+                        <div class="step-description">Clique no botão "Copiar Script" abaixo para copiar o código SQL de correção.</div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div class="step-title">Executar no Supabase Dashboard</div>
+                        <div class="step-description">
+                            • Acesse seu projeto no <strong>Supabase Dashboard</strong><br>
+                            • Vá para <strong>SQL Editor</strong><br>
+                            • Cole o script e clique em <strong>Run</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div class="step-title">Testar o Upload</div>
+                        <div class="step-description">Volte para a área admin e teste o upload de imagens. O erro deve estar resolvido!</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sql-container">
+                <div class="sql-header">
+                    <h4>📝 Script SQL de Correção</h4>
+                    <button class="copy-btn" onclick="copySQL()" id="copyBtn">📋 Copiar Script</button>
+                </div>
+                <div class="sql-code" id="sqlCode">-- ========================================
+-- SCRIPT DEFINITIVO PARA CORRIGIR RLS DO STORAGE
+-- Resolve: StorageApiError: new row violates row-level security policy
+-- ========================================
+
+-- 1. VERIFICAR SE O STORAGE ESTÁ HABILITADO
+SELECT 
+    CASE 
+        WHEN EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'storage' AND table_name = 'buckets') 
+        THEN '✅ Storage está habilitado' 
+        ELSE '❌ Storage NÃO está habilitado - Habilite na aba Storage do Dashboard'
+    END as status_storage;
+
+-- 2. VERIFICAR BUCKETS EXISTENTES
+SELECT name, public, created_at FROM storage.buckets WHERE name = 'produtos-images';
+
+-- 3. REMOVER POLÍTICAS CONFLITANTES (se existirem)
+DROP POLICY IF EXISTS "Permitir SELECT para todos" ON storage.objects;
+DROP POLICY IF EXISTS "Permitir INSERT para todos" ON storage.objects;
+DROP POLICY IF EXISTS "Permitir UPDATE para todos" ON storage.objects;
+DROP POLICY IF EXISTS "Permitir DELETE para todos" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public read" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public insert" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public update" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public delete" ON storage.objects;
+DROP POLICY IF EXISTS "produtos_images_select" ON storage.objects;
+DROP POLICY IF EXISTS "produtos_images_insert" ON storage.objects;
+DROP POLICY IF EXISTS "produtos_images_update" ON storage.objects;
+DROP POLICY IF EXISTS "produtos_images_delete" ON storage.objects;
+
+-- 4. RECRIAR O BUCKET (se necessário)
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+    'produtos-images',
+    'produtos-images',
+    true,
+    52428800, -- 50MB
+    ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+)
+ON CONFLICT (id) DO UPDATE SET
+    public = EXCLUDED.public,
+    file_size_limit = EXCLUDED.file_size_limit,
+    allowed_mime_types = EXCLUDED.allowed_mime_types;
+
+-- 5. CRIAR POLÍTICAS RLS ULTRA-PERMISSIVAS
+
+-- Política SELECT (Visualizar imagens)
+CREATE POLICY "produtos_images_select_all"
+ON storage.objects
+FOR SELECT
+USING (bucket_id = 'produtos-images');
+
+-- Política INSERT (Upload de imagens)
+CREATE POLICY "produtos_images_insert_all"
+ON storage.objects
+FOR INSERT
+WITH CHECK (bucket_id = 'produtos-images');
+
+-- Política UPDATE (Atualizar imagens)
+CREATE POLICY "produtos_images_update_all"
+ON storage.objects
+FOR UPDATE
+USING (bucket_id = 'produtos-images')
+WITH CHECK (bucket_id = 'produtos-images');
+
+-- Política DELETE (Excluir imagens)
+CREATE POLICY "produtos_images_delete_all"
+ON storage.objects
+FOR DELETE
+USING (bucket_id = 'produtos-images');
+
+-- 6. HABILITAR RLS (se não estiver habilitado)
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+
+-- 7. VERIFICAÇÃO FINAL
+SELECT 
+    '✅ Configuração concluída!' as status,
+    COUNT(*) as total_policies
+FROM pg_policies 
+WHERE tablename = 'objects' 
+AND schemaname = 'storage'
+AND policyname LIKE 'produtos_images_%';
+
+-- 8. LISTAR POLÍTICAS CRIADAS
+SELECT 
+    policyname as "Política",
+    cmd as "Comando",
+    CASE 
+        WHEN qual IS NOT NULL THEN 'Com condições'
+        ELSE 'Sem condições'
+    END as "Status"
+FROM pg_policies 
+WHERE tablename = 'objects' 
+AND schemaname = 'storage'
+AND policyname LIKE 'produtos_images_%'
+ORDER BY policyname;</div>
+            </div>
+            
+            <div class="warning">
+                <h4>⚠️ Erro "role rds_superuser does not exist"?</h4>
+                <p>Se você receber o erro <code>ERROR: 42704: role "rds_superuser" does not exist</code>, use o <strong>Script Simplificado</strong> que foi otimizado especificamente para Supabase.</p>
+                <p>✨ <strong>Solução:</strong> Clique em "Script Simplificado" abaixo - ele funciona sem depender de roles específicos do AWS.</p>
+            </div>
+            
+            <div class="warning">
+                <h4>⚠️ Erro de Permissões?</h4>
+                <p>Se você receber o erro <code>ERROR: 42501: must be owner of table objects</code>, significa que você não tem privilégios de administrador.</p>
+                <p><strong>Soluções:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>🔧 <strong>Peça para o admin do projeto</strong> executar o script</li>
+                    <li>🎮 <strong>Use o modo demo temporário</strong> (mude <code>isDemoMode: true</code> no supabase.js)</li>
+                    <li>🆕 <strong>Crie um novo projeto</strong> onde você seja o proprietário</li>
+                </ul>
+            </div>
+            
+            <div class="warning">
+                <h4>⚠️ Importante</h4>
+                <p>Este script deve ser executado no <strong>SQL Editor</strong> do Supabase Dashboard, não no código da aplicação. Ele configura as políticas de segurança diretamente no banco de dados.</p>
+            </div>
+            
+            <div class="success">
+                <h4>🎯 Resultado Esperado</h4>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>✅ 4 políticas RLS criadas para o bucket produtos-images</li>
+                    <li>✅ Bucket configurado com limite de 50MB</li>
+                    <li>✅ Upload de imagens funcionando normalmente</li>
+                    <li>✅ Erros 400 e RLS completamente resolvidos</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center; margin: 40px 0;">
+                <a href="https://app.supabase.com" target="_blank" class="btn-primary pulse">🚀 Abrir Supabase Dashboard</a>
+                <button class="btn-secondary" onclick="openSimpleScript()">✨ Script Simplificado</button>
+                <button class="btn-secondary" onclick="openAlternativeScript()">🔧 Script Sem Admin</button>
+                <button class="btn-secondary" onclick="enableDemoMode()">🎮 Ativar Modo Demo</button>
+                <a href="/admin/" class="btn-secondary">👨‍💼 Voltar ao Admin</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>💡 <strong>Dica:</strong> Após executar o script, aguarde alguns segundos antes de testar o upload para que as políticas sejam aplicadas.</p>
+            <p>Se o problema persistir, verifique se o Storage está habilitado no seu plano do Supabase.</p>
+        </div>
+    </div>
+    
+    <script>
+        function copySQL() {
+            const sqlCode = document.getElementById('sqlCode');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            // Criar um elemento temporário para copiar o texto
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = sqlCode.textContent;
+            document.body.appendChild(tempTextArea);
+            
+            // Selecionar e copiar
+            tempTextArea.select();
+            document.execCommand('copy');
+            
+            // Remover elemento temporário
+            document.body.removeChild(tempTextArea);
+            
+            // Feedback visual
+            copyBtn.textContent = '✅ Copiado!';
+            copyBtn.classList.add('copied');
+            
+            setTimeout(() => {
+                copyBtn.textContent = '📋 Copiar Script';
+                copyBtn.classList.remove('copied');
+            }, 3000);
+            
+            // Mostrar alerta
+            alert('✅ Script SQL copiado!\n\nAgora:\n1. Abra o Supabase Dashboard\n2. Vá para SQL Editor\n3. Cole e execute o script');
+        }
+        
+        function openSimpleScript() {
+            window.open('/fix-supabase-rls-simples.sql', '_blank');
+            alert('✨ Script Simplificado aberto!\n\nEste script foi otimizado para Supabase e resolve o erro "role rds_superuser does not exist".\n\nInstruções:\n1. Copie todo o script\n2. Cole no SQL Editor do Supabase\n3. Execute e teste o upload!');
+        }
+        
+        function openAlternativeScript() {
+            window.open('/fix-rls-sem-admin.sql', '_blank');
+            alert('📋 Script alternativo aberto!\n\nEste script funciona quando você não tem privilégios de admin.\n\nInstruções:\n1. Copie o script\n2. Envie para o administrador do projeto\n3. Ou use o modo demo temporário');
+        }
+        
+        function enableDemoMode() {
+            if (confirm('🎮 Ativar Modo Demo?\n\nIsso permitirá uploads offline para teste.\n\nVocê precisará editar o arquivo supabase.js manualmente.')) {
+                alert('📝 Para ativar o modo demo:\n\n1. Abra: assets/js/supabase.js\n2. Mude: isDemoMode: true\n3. Salve o arquivo\n4. Recarregue a página admin\n\n✅ O upload funcionará offline!');
+            }
+        }
+        
+        // Adicionar efeito de destaque ao carregar
+        window.addEventListener('load', function() {
+            const copyBtn = document.getElementById('copyBtn');
+            copyBtn.style.animation = 'pulse 2s infinite';
+            
+            setTimeout(() => {
+                copyBtn.style.animation = 'none';
+            }, 6000);
+        });
+    </script>
+</body>
+</html>
